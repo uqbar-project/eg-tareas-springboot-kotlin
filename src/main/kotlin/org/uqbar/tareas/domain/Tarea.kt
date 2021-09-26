@@ -24,7 +24,7 @@ class Tarea : Entity() {
     @JsonIgnore
     var fecha = LocalDate.now()
 
-    fun validar(): Unit {
+    fun validar() {
         if (descripcion.isEmpty()) {
             throw BusinessException("Debe ingresar descripcion")
         }
@@ -34,8 +34,6 @@ class Tarea : Entity() {
     }
 
     fun estaCumplida() = porcentajeCumplimiento == TAREA_COMPLETA
-
-    fun estaPendiente() = !this.estaCumplida()
 
     override fun toString() = this.descripcion
 

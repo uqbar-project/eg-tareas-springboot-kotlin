@@ -38,8 +38,6 @@ class TareasRepository : CollectionBasedRepo<Tarea>() {
 
     override fun getEntityType() = Tarea::class.java
 
-    fun tareasPendientes() = allInstances().filter{ it.estaPendiente() }.toList()
-
     override fun searchById(id: Int) = allInstances().find { it.id == id }
     override fun getCriterio(example: Tarea): Predicate<Tarea> =
         Predicate<Tarea> {
