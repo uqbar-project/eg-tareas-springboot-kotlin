@@ -29,7 +29,7 @@ class TareasService {
         }
         val tarea = tareaPorId(id)
         val nombreAsignatario = tareaActualizada.asignatario?.nombre
-        // Solo llamamos a getAsignatario si el nombre contiene un valor distinto de null 
+        // Solo llamamos a getAsignatario si el nombre contiene un valor distinto de null
         tareaActualizada.asignatario = nombreAsignatario?.let { usuariosRepository.getAsignatario(it) }
         // Pisamos los valores del repo con los nuevos datos
         tarea.actualizar(tareaActualizada)
