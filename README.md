@@ -17,15 +17,25 @@ Vemos que hay una relación bidireccional entre Tarea y Usuario
 
 En TareasApplication levantamos el servidor [Tomcat](https://tomcat.apache.org/).
 
-```xtend
- def static void main(String[] args) {
-     SpringApplication.run(TareasApplication, args)
- }
+```kt
+@SpringBootApplication
+class TareasApplication
+
+fun main(args: Array<String>) {
+    runApplication<TareasApplication>(*args)
+}
 ```
 
 Por defecto va a levantar en el puerto 8080, pero lo modificamos en el archivo application.properties:
 
 `server.port=9000`
+
+O bien con formato yml en el `application.yml`:
+
+```yml
+server:
+  port: 9000
+```
 
 Los controllers que tenemos disponibles son UsuariosController y TareasController.
 
@@ -34,15 +44,16 @@ Los controllers que tenemos disponibles son UsuariosController y TareasControlle
 
 Las opciones para probarlo (ya sea con POSTMAN o una aplicación cliente) son las siguientes:
 
-- desde el Eclipse, seleccionar TareasApplication.xtend y con botón derecho ejecutar la opción: Run As > Java Application
+- desde IntelliJ, seleccionar TareasApplication.kt y con botón derecho ejecutar la opción Run (Ctrl + Shift + F10)
 - o bien desde la línea de comando (cmd/PowerShell/Git Bash o una terminal de Linux) ejecutar la siguiente instrucción
 
 ```
-mvn spring-boot:run
-
+./gradlew bootRun
 ```
 
 Entonces visualizarán en la consola el log del servidor levantado:
+
+// TODO: Cambiar la imagen
 
 ![tomcat-server-started](https://user-images.githubusercontent.com/26492157/88977567-88c7a700-d294-11ea-82a6-7e68895cd1b9.PNG)
 
@@ -73,42 +84,39 @@ Para modificar una tarea, podemos hacer un pedido PUT que contenga la nueva info
 
 Es interesante ver la definición **del objeto de negocio Tarea** ya que en lugar de publicar la propiedad fecha como un LocalDate, lo hace como String formateándolo a día/mes/año. Esto se logra mediante dos anotaciones: @JsonIgnore para el atributo fecha (para que el serializador no lo tome en cuenta), y @JsonProperty con el nombre de la propiedad a publicar. Vemos a continuación cómo es la definición en el código:
 
-```xtend
-@Accessors
-class Tarea extends Entity {
-  static String DATE_PATTERN = "dd/MM/yyyy"
-  ...
-  @JsonIgnore LocalDate fecha
+```kt
+class Tarea : Entity() {
+    ...
+    
+    @JsonIgnore
+    var fecha = LocalDate.now()
 
-  ...
-  
-  @JsonProperty("fecha")
-  def getFechaAsString() {
-    formatter.format(this.fecha)
-  }
-  
-  def formatter() {
-    DateTimeFormatter.ofPattern(DATE_PATTERN)
-  }
+    ...
+    
+    @JsonProperty("fecha")
+    fun getFechaAsString() = formatter.format(this.fecha)
 ```
 
 Del mismo modo, la propiedad asignatario se oculta para publicar otra llamada "asignadoA" que es un String:
 
-```xtend
-@Accessors
-class Tarea extends Entity {
-  @JsonIgnore Usuario asignatario
-  ...
-  
-  @JsonProperty("asignadoA")
-  def String getAsignadoA() {
-    if (asignatario === null) {
-      return ""
+```kt
+class Tarea : Entity() {
+
+    ...
+    
+    @JsonIgnore
+    var asignatario: Usuario? = null
+
+    @JsonProperty("asignadoA")
+    fun getAsignadoA(): String = asignatario?.nombre.orEmpty()
+
+    @JsonProperty("asignadoA")
+    fun setAsignatario(nombreAsignatario: String) {
+        asignatario = Usuario(nombreAsignatario)
     }
-    asignatario.nombre
-  }
-}
+
 ```
+
 Surgen las preguntas: ¿por qué?, ¿es necesario?.
 
 Probamos quitando la anotación `@JsonIgnore` que está al lado del atributo asignatario.
@@ -119,9 +127,7 @@ Parece que va todo bien, hasta que volvemos a pedir las tareas desde Postman:
 
 ![postman-infinite-recursion](https://user-images.githubusercontent.com/26492157/88987001-ec5ccf00-d2aa-11ea-8674-839870ffc36d.PNG)
 
-Jackson no puede serializar a JSON la lista de tareas pendientes: Se produce una recursión infinita dada la relación bidireccional entre Tarea y Usuario, generando `StackOverflowError`.
-
-En general se busca evitar tener relaciones bidireccionales, pero cuando esto no es posible hay que buscar otra solución.
+Jackson no puede serializar a JSON la lista de tareas pendientes: Se produce una recursión infinita dada la relación bidireccional entre Tarea y Usuario, generando `StackOverflowError`. En general se busca evitar tener relaciones bidireccionales, pero cuando esto no es posible hay que buscar otra solución.
 
 En nuestro caso, decidimos ignorar el atributo "asignatario" para que el serializador no lo tome en cuenta (así se evita la recursión) y en su lugar publicamos la property "asignadoA" que devuelve el nombre del asignatario.
 
@@ -129,18 +135,17 @@ En nuestro caso, decidimos ignorar el atributo "asignatario" para que el seriali
 
 Veamos los métodos get:
 
-```xtend
+```kt
 @GetMapping("/tareas")
 @ApiOperation("Devuelve todas las tareas")
-def tareas() {
-  ResponseEntity.ok(tareaService.tareas)
+fun tareas(): List<Tarea> {
+    return tareasService.tareas()
 }
 
 @GetMapping("/tareas/{id}")
 @ApiOperation("Permite conocer la información de una tarea por identificador")
-def tareaPorId(@PathVariable Integer id) {
-  val tarea = tareaService.tareaPorId(id)
-  ResponseEntity.ok(tarea)
+fun tareaPorId(@PathVariable id: Int): Tarea {
+    return tareasService.tareaPorId(id)
 }
 ```
 
@@ -164,24 +169,11 @@ Esto lo podemos ver en los tests.
 
 Ahora veremos el método que permite actualizar una tarea:
 
-```xtend
+```kt
 @PutMapping("/tareas/{id}")
 @ApiOperation("Permite actualizar la información de una tarea")
-def actualizar(@PathVariable Integer id, @RequestBody @Valid Tarea tareaInput) {
-  val actualizada = tareaService.actualizar(id, tareaInput)
-  ResponseEntity.ok(actualizada)
-}
-```
-
-El service a su vez hace lo siguiente:
-
-```xtend
-def actualizar(Integer id, Tarea tareaInput) {
-  val tareaRepo = tareaPorId(id)
-  val nombreAsignatario = tareaInput.asignatario.nombre
-  tareaInput.asignatario = !nombreAsignatario.empty ? repoUsuarios.getAsignatario(nombreAsignatario)
-  tareaRepo.actualizar(tareaInput)
-  validarYActualizar(tareaRepo)
+fun actualizar(@PathVariable id: Int, @RequestBody tareaBody: Tarea): Tarea {
+    return tareasService.actualizar(id, tareaBody)
 }
 ```
 
@@ -194,31 +186,47 @@ La implementación del método actualizar requiere transformar el body (JSON) al
 
 La property fecha va a asignarle al atributo fecha la fecha que vino (como String) convertida a LocalDate.
 
-Una vez que se actualiza, se envía el status 200 y la tarea actualizada serializada a JSON. En caso de haber un error de negocio lanzamos la excepción  ```new ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)``` y la aplicación va a devolver un status 400 (Bad Request) con la informacón del error. Cualquier otra excepción que no es del negocio, es un error de programa, corresponde devolver 500 (internal server error), que es lo que va a devolver Spring Boot por defecto.
+El service a su vez
+
+- verifica que la información sea consistente (parámetro de la URL e información dentro del body)
+- se recupera la información de la tarea del repositorio (que es nuestra _source of truth_)
+- pisamos los valores que tenemos del repo con la información que nos pasaron (incluyendo el asignatario si existe)
+- delegamos en el objeto de dominio la validación
+- delegamos al repositorio actualizar la información
+- y opcionalmente devolvemos la tarea actualizada
+
+```kt
+fun actualizar(id: Int, tareaActualizada: Tarea): Tarea {
+    if (tareaActualizada.id !== null && tareaActualizada.id !== id) {
+        throw BusinessException("Id en URL distinto del id que viene en el body")
+    }
+    val tarea = tareaPorId(id)
+    val nombreAsignatario = tareaActualizada.asignatario?.nombre
+    // Solo llamamos a getAsignatario si el nombre contiene un valor distinto de null
+    tareaActualizada.asignatario = nombreAsignatario?.let { usuariosRepository.getAsignatario(it) }
+    tarea.actualizar(tareaActualizada)
+    tarea.validar()
+    tareasRepository.update(tarea)
+    return tarea
+}
+```
+
+Una vez que se actualiza, se envía el status 200 y la tarea actualizada serializada a JSON. En caso de haber un error de negocio lanzamos una excepción que se convierte a un status 400 (Bad Request) con la informacón del error. Cualquier otra excepción que no es del negocio, es un error de programa, corresponde devolver 500 (internal server error), que es lo que va a devolver Spring Boot por defecto.
 
 ## Manejo de errores
 
 Una cosa interesante es que cuando el service valida que una tarea exista:
 
-```xtend
-def tareaPorId(Integer id) {
-  val tarea = repoTareas.searchById(id)
-  if (tarea === null) {
-    throw new NotFoundException('''No se encontró la tarea de id <«id»>''');
-  }
-  tarea
-}
+```kt
+fun tareaPorId(id: Int): Tarea = tareasRepository.searchById(id) ?: throw NotFoundException("No se encontró la tarea de id <$id>")
+
 ```
 
 la excepción NotFoundException se asocia a un código de respuesta 404:
 
 ```xtend
-@ResponseStatus(NOT_FOUND)
-class NotFoundException extends RuntimeException {
-
-  new(String message) {
-    super(message)
-  }
+@ResponseStatus(HttpStatus.NOT_FOUND)
+class NotFoundException(msg: String) : RuntimeException(msg) {
 }
 ```
 
@@ -231,20 +239,20 @@ Otra forma de modelar esto es dejar las excepciones sin anotaciones, y definir u
 ```xtend
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
-class RestExceptionHandler extends ResponseEntityExceptionHandler {
+class RestExceptionHandler : ResponseEntityExceptionHandler {
 
   @ExceptionHandler(BusinessException)
-  def protected handleBusinessException(BusinessException e) {
+  fun handleBusinessException(e: BusinessException) {
     ResponseEntity.badRequest.body(e.message)
   }
 
   @ExceptionHandler(NotFoundException)
-  def protected handleNotFoundException(NotFoundException e) {
+  fun handleNotFoundException(e: NotFoundException) {
     ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.message)
   }
 
   @ExceptionHandler(Exception)
-  def protected handleException(Exception e) {
+  fun handleException(e: Exception) {
     ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.message)
   }
 
