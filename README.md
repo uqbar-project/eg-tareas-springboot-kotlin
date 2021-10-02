@@ -265,10 +265,18 @@ De la misma manera que vamos desde excepciones más particulares a más generale
 
 ![Arquitectura tareas springboot](https://user-images.githubusercontent.com/26492157/89088307-f1368700-d36d-11ea-8397-ad3389690eec.png)
 
-# Testing
+## Testing
 
 En la carpeta src/test/java podrás encontrar los casos de prueba para los controllers. Por ejemplo, para la búsqueda de una tarea puntual tendremos los siguientes escenarios:
 
 - una búsqueda de una tarea que existe, debe devolver toda la información de la tarea
 - una búsqueda de una tarea que no existe, debe devolver código 404 (not found). Chequear por el mensaje de error específico puede ser contraproducente para hacerlo mantenible, solo lo dejamos con fines didácticos (en una aplicación comercial podría ser mejor no agregar ese assert)
 - una búsqueda sin id, debe devolver código 400 (bad request).
+
+## Para testearlo en Insomnia
+
+Tenés [este json](./Insomnia_tareas.json) que podés importar en Insomnia:
+
+- Application > Preferences > luego abrir la solapa Data
+- Presionar el botón Data > From File
+- Seleccionar este archivo, la carpeta de Insomnia se llama Tareas
