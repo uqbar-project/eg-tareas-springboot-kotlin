@@ -1,6 +1,7 @@
 package org.uqbar.tareas
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -21,7 +22,7 @@ import java.time.LocalDate
 @AutoConfigureJsonTesters
 // Necesitamos agregar el package org.uqbar.tareas para que encuentre los componentes
 // que quiere autowirear
-@ComponentScan(basePackages=arrayOf("org.uqbar.tareas"))
+@ComponentScan(basePackages= ["org.uqbar.tareas"])
 @WebMvcTest
 @DisplayName("Dado un controller de tareas")
 class TareasControllerTest {
@@ -130,13 +131,13 @@ class TareasControllerTest {
     }
 
     @Test
-    fun `si se intenta actualizar una tarea con datos invalidos se produce bad request`() {
+    fun `si se intenta actualizar una tarea con datos incorrectos se produce bad request`() {
         val tareaInvalida = buildTarea().apply {
             id = tarea.id
             descripcion = ""
         }
 
-        mockMvc
+        val errorMessage = mockMvc
             .perform(
                 MockMvcRequestBuilders
                     .put("/tareas/" + tarea.id)
@@ -144,6 +145,85 @@ class TareasControllerTest {
                     .content(ObjectMapper().writeValueAsString(tareaInvalida))
             )
             .andExpect(status().isBadRequest)
+            .andReturn().resolvedException?.message
+
+        assertEquals(errorMessage, "Debe ingresar descripcion")
+    }
+
+    @Test
+    fun `se puede desasignar omitiendo el asignatario, esto actualiza la tarea correctamente`() {
+        val tareaSinAsignatario = """
+            {
+                "id": ${tarea.id},
+                "descripcion":  "Resolver testeo unitario de tarea",
+                "fecha": "21/05/2021",
+                "iteracion": "Iteracion 1",
+                "porcentajeCumplimiento": 40
+            }
+        """.trimIndent()
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/${tarea.id}")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaSinAsignatario)
+            )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/json"))
+            .andExpect(jsonPath("$.asignadoA").value(""))
+            .andExpect(jsonPath("$.porcentajeCumplimiento").value("40"))
+    }
+
+    @Test
+    fun `si se intenta asignar a un usuario inexistente, al actualizar se produce un badRequest`() {
+        val tareaSinAsignatario = """
+            {
+                "id": ${tarea.id},
+                "descripcion":  "Resolver testeo unitario de tarea",
+                "asignadoA": "Mengueche",
+                "fecha": "21/05/2021",
+                "iteracion": "Iteracion 1",
+                "porcentajeCumplimiento": 40
+            }
+        """.trimIndent()
+
+        val errorMessage = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/${tarea.id}")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaSinAsignatario)
+            )
+            .andExpect(status().isNotFound)
+            .andReturn().resolvedException?.message
+
+        assertEquals(errorMessage, "No se encontró el usuario <Mengueche>")
+    }
+
+    @Test
+    fun `si se intenta actualizar una tarea con id diferente en el request y en el body se produce bad request`() {
+        val tareaJson = """
+            {
+                "id": 1,
+                "descripcion":  "Resolver testeo unitario de tarea",
+                "fecha": "21/05/2021",
+                "iteracion": "Iteracion 1",
+                "porcentajeCumplimiento": 20
+            }
+        """.trimIndent()
+
+        val errorMessage = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/" + 2)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaJson)
+            )
+            .andExpect(status().isBadRequest)
+            .andReturn().resolvedException?.message
+
+        assertEquals(errorMessage, "Id en URL distinto del id que viene en el body")
     }
 
     fun buildTarea(): Tarea {
