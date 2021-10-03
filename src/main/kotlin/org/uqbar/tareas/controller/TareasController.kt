@@ -15,21 +15,15 @@ class TareasController {
 
     @GetMapping("/tareas")
     @ApiOperation("Devuelve todas las tareas")
-    fun tareas(): List<Tarea> {
-        return tareasService.tareas()
-    }
+    fun tareas() = tareasService.tareas()
 
     @GetMapping("/tareas/{id}")
     @ApiOperation("Permite conocer la información de una tarea por identificador")
-    fun tareaPorId(@PathVariable id: Int): Tarea {
-        return tareasService.tareaPorId(id)
-    }
+    fun tareaPorId(@PathVariable id: Int) = tareasService.tareaPorId(id)
 
     @GetMapping("/tareas/search")
     @ApiOperation("Devuelve todas las tareas cuya descripción contiene la descripción que pasamos como parámetro")
-    fun buscar(@RequestBody tareaBusqueda: Tarea): List<Tarea> {
-        return tareasService.buscar(tareaBusqueda)
-    }
+    fun buscar(@RequestBody tareaBusqueda: Tarea) = tareasService.buscar(tareaBusqueda)
 
     @PutMapping("/tareas/{id}")
     @ApiOperation("Permite actualizar la información de una tarea")

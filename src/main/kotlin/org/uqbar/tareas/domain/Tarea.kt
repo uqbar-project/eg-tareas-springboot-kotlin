@@ -14,9 +14,9 @@ class Tarea : Entity() {
         val formatter = DateTimeFormatter.ofPattern(DATE_PATTERN)
     }
 
-    var descripcion: String = ""
-    var iteracion: String = ""
-    var porcentajeCumplimiento: Int = 0
+    var descripcion = ""
+    var iteracion = ""
+    var porcentajeCumplimiento = 0
 
     @JsonIgnore
     var asignatario: Usuario? = null
@@ -65,4 +65,5 @@ class Tarea : Entity() {
         asignatario = otraTarea.asignatario
         fecha = otraTarea.fecha
     }
+
 }

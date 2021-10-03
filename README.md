@@ -131,7 +131,153 @@ Jackson no puede serializar a JSON la lista de tareas pendientes: Se produce una
 
 En nuestro caso, decidimos ignorar el atributo "asignatario" para que el serializador no lo tome en cuenta (así se evita la recursión) y en su lugar publicamos la property "asignadoA" que devuelve el nombre del asignatario.
 
-#### Controllers de Tarea - GET
+La solución utilizando annotations de Jackson (`@JsonProperty`, `@JsonIgnore`) requiere escribir mucho menos código, la solución es más declarativa. 
+
+La declaratividad nos permite expresar "esta propiedad no la tomes en cuenta" o "esta propiedad se llama de esta otra manera", y delegar en un motor el algoritmo de serialización/deserialización. Esto es conveniente ya que tenemos que pensar en menos cosas, por otra parte tenemos menos control sobre el algoritmo, algo que en algunos casos podemos necesitar. Por otra parte, la clase de negocio Tarea no se ve ensuciada con anotaciones que necesita otro concern (el controller para devolver información).
+
+Otra desventaja es que las anotaciones sirven para todos los casos, no es posible que un controller devuelva en ciertos casos el asignatario y en otros no, **siempre tenemos que devolver la misma información**.
+
+## Otras alternativas a la hora de serializar
+
+Además de las anotaciones que provee Jackson, contamos con otras variantes:
+
+- DTO
+- Custom Serializers
+
+### DTO
+
+El DTO o (Data Transfer Object), es un objeto que modela la transferencia de información de un ambiente a otro (en este caso el que expone la API para ser consumida por un cliente como POSTMAN o el frontend). La técnica es bastante simple:
+
+- construimos un objeto TareaDTO y definimos atributos (y getters/setters) 
+
+```kt
+class TareaDTO {
+    var id: Int? = null
+    var descripcion = ""
+}
+```
+
+Todos esos atributos formarán parte de lo que se expondrá de la Tarea, en los endpoints que lo usen.
+
+```kt
+fun buscar(@RequestBody tareaBusqueda: Tarea) =
+    tareasService.buscar(tareaBusqueda).map { it.toTareaDTO() }
+```
+
+- además, tenemos que crear un método para convertir la información: de Tarea a TareaDTO.
+
+```kt
+fun toTareaDTO(): TareaDTO = TareaDTO().also {
+    it.id = this.id
+    it.descripcion = this.descripcion
+}
+```
+
+#### Ventajas
+
+- podemos configurar distintos DTO para que cada endpoint devuelva diferente información
+- no ensuciamos con anotaciones de arquitectura al objeto de dominio
+
+#### Desventajas
+
+- hay más de un concepto acoplado a la Tarea, un cambio en la definición del negocio impacta ahora en más de un lugar (el objeto de dominio y sus DTOs)
+- es necesario construir el algoritmo que convierte a los DTO
+
+### Custom serializers
+
+Una tercera opción consiste en definir un objeto que sepa serializar tareas, en base al serializador que nos provee por defecto Springboot:
+
+```kt
+class TareaSerializer : StdSerializer<Tarea>(Tarea::class.java) {
+    
+    override fun serialize(tarea: Tarea, gen: JsonGenerator, provider: SerializerProvider) {
+        gen.apply {
+            writeStartObject()
+            if (tarea.id !== null) {
+                writeNumberField("id", tarea.id)
+            }
+            writeStringField("descripcion", tarea.descripcion)
+            if (tarea.asignatario !== null) {
+                writeStringField("asignadoA", tarea.asignatario?.nombre)
+            }
+            writeStringField("iteracion", tarea.iteracion)
+            writeStringField("fecha", DateTimeFormatter.ofPattern("dd/MM/yyyy").format(tarea.fecha))
+            writeNumberField("porcentajeCumplimiento", tarea.porcentajeCumplimiento)
+            writeEndObject()
+        }
+    }
+
+}
+```
+
+En la clase Tarea, le asociamos nuestro serializador _custom_:
+
+```kt
+@JsonSerialize(using=TareaSerializer::class)
+class Tarea : Entity() {
+```
+
+Esto nos permite devolver la lista de tareas satisfactoriamente, porque generamos un JSON propio. Tenemos un gran control sobre el algoritmo de serialización. Podemos alterar el orden en el que construimos cada atributo, por ejemplo podemos alternar las líneas fecha y porcentajeCumplimiento:
+
+```kt
+    writeStringField("fecha", DateTimeFormatter.ofPattern("dd/MM/yyyy").format(tarea.fecha))
+    writeNumberField("porcentajeCumplimiento", tarea.porcentajeCumplimiento)
+```
+
+Y eso produce el cambio en nuestro output:
+
+![alterar orden del JSON](./images/alterarOrdenJSON.png)
+
+Tener serializadores también sustituye la necesidad de manejar las anotaciones en el objeto de dominio, y es una solución todavía más verbosa que la del DTO: requiere muchas más líneas de código, para saber por ejemplo cómo deserializar la información que viene en formato JSON
+
+```kt
+class TareaDeserializer : StdDeserializer<Tarea>(Tarea::class.java) {
+
+    @Autowired
+    lateinit var usuariosRepository: UsuariosRepository
+
+    override fun deserialize (parser: JsonParser, context: DeserializationContext): Tarea {
+        val node = parser.readValueAsTree() as TreeNode
+        return Tarea().apply {
+            val nodoId = node.get("id") as IntNode?
+            if (nodoId !== null) {
+                id = nodoId.asInt()
+            }
+            descripcion = (node.get("descripcion") as TextNode).asText()
+            iteracion = (node.get("iteracion") as TextNode).asText()
+            val nodoPorcentaje = node.get("porcentajeCumplimiento") as IntNode?
+            if (nodoPorcentaje !== null) {
+                porcentajeCumplimiento = nodoPorcentaje.asInt()
+            }
+            val nodoAsignatario = node.get("asignadoA") as TextNode?
+            if (nodoAsignatario !== null) {
+                asignatario = usuariosRepository.getAsignatario(nodoAsignatario.asText())
+            }
+            val nodoFecha = node.get("fecha") as TextNode?
+            if (nodoFecha !== null) {
+                fecha = LocalDate.parse(nodoFecha.asText(), Tarea.formatter)
+            }
+        }
+    }
+}
+```
+
+Y también hay que configurarlo en la clase Tarea:
+
+```kt
+@JsonSerialize(using=TareaSerializer::class)
+@JsonDeserialize(using=TareaDeserializer::class)
+class Tarea : Entity() {
+```
+
+El deserializador necesita manejar correctamente
+
+- la relación bidireccional Tarea/Usuario que puede hacernos entrar en loop si mantenemos serializadores por defecto y sin annotations
+- la fecha (si intentamos usar el serializador de fechas por defecto nos aparecerá un error bastante feo)
+
+La solución es un poco áspera, porque tenemos que convertir el JSON a un tipo concreto: String, int, fecha, Usuario. Nuevamente, lo interesante es tener varias soluciones para poder compararlas.
+
+## Controllers de Tarea - GET
 
 Veamos los métodos get:
 
@@ -165,7 +311,7 @@ En el caso de la búsqueda específica, los códigos de respuesta http son:
 
 Esto lo podemos ver en los tests.
 
-#### Controllers de Tarea - PUT
+## Controllers de Tarea - PUT
 
 Ahora veremos el método que permite actualizar una tarea:
 
