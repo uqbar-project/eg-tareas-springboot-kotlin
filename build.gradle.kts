@@ -21,13 +21,13 @@ repositories {
 
 dependencies {
     implementation("org.uqbar-project:uqbar-domain:3.6.3")
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-web:2.5.6")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.springfox:springfox-boot-starter:3.0.0")
     implementation("io.springfox:springfox-swagger-ui:3.0.0")
-    providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    providedRuntime("org.springframework.boot:spring-boot-starter-tomcat:2.5.6")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:2.5.6")
 }
 
 tasks.withType<KotlinCompile> {
