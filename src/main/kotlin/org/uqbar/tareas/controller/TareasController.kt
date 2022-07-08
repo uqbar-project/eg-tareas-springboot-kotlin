@@ -7,7 +7,7 @@ import org.uqbar.tareas.domain.Tarea
 import org.uqbar.tareas.service.TareasService
 
 @RestController
-//@CrossOrigin TODO: Ver si es necesario
+@CrossOrigin("*")
 class TareasController {
 
     @Autowired

@@ -38,11 +38,11 @@ class Tarea : Entity() {
     override fun toString() = this.descripcion
 
     @JsonProperty("asignadoA")
-    fun getAsignadoA(): String = asignatario?.nombre.orEmpty()
+    fun getAsignadoA(): String? = asignatario?.nombre
 
     @JsonProperty("asignadoA")
-    fun setAsignatario(nombreAsignatario: String) {
-        asignatario = Usuario(nombreAsignatario)
+    fun setAsignatario(nombreAsignatario: String?) {
+        asignatario = if (nombreAsignatario != null) Usuario(nombreAsignatario) else null
     }
 
     @JsonProperty("fecha")

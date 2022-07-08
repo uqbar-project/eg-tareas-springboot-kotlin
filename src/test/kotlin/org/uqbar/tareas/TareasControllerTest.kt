@@ -171,7 +171,7 @@ class TareasControllerTest {
             )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/json"))
-            .andExpect(jsonPath("$.asignadoA").value(""))
+            .andExpect(jsonPath("$.asignadoA").value(null))
             .andExpect(jsonPath("$.porcentajeCumplimiento").value("40"))
     }
 

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.uqbar.tareas.repository.UsuariosRepository
 
 @RestController
-@CrossOrigin
+@CrossOrigin("*")
 class UsuariosController {
 
     @Autowired
