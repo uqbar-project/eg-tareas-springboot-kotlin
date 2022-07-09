@@ -21,16 +21,14 @@ import java.time.LocalDate
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Dado un controller de tareas")
-class TareasControllerTest {
-
-    @Autowired
-    lateinit var mockMvc: MockMvc
+class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
 
     @Autowired
     lateinit var tareasRepository: TareasRepository
 
     @Autowired
     lateinit var usuariosRepository: UsuariosRepository
+
     lateinit var usuario: Usuario
     lateinit var tarea: Tarea
 
