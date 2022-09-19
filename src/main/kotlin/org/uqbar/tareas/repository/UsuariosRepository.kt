@@ -11,7 +11,7 @@ class UsuariosRepository {
         var ultimoId = 1
     }
 
-    fun allInstances() = usuarios
+    fun allInstances() = usuarios.sortBy { it.nombre }
 
     fun create(usuario: Usuario): Usuario {
         usuario.id = ultimoId++
