@@ -252,6 +252,69 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
         assertEquals(nuevaTarea!!.descripcion, descripcionNuevaTarea)
     }
 
+    @Test
+    fun `si se intenta crear una tarea con datos incorrectos, el sistema rechaza la operacion`() {
+        val tareaInvalida = buildTarea().apply {
+            descripcion = ""
+        }
+
+        val errorMessage = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/tareas")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(ObjectMapper().writeValueAsString(tareaInvalida))
+            )
+            .andExpect(status().isBadRequest)
+            .andReturn().resolvedException?.message
+
+        assertEquals(errorMessage, "Debe ingresar descripcion")
+    }
+
+    @Test
+    fun `si se intenta crear una tarea pasando un id, el sistema rechaza la operacion`() {
+        val tareaInvalida = buildTarea().apply {
+            id = 100
+            descripcion = ""
+        }
+
+        val errorMessage = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/tareas")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(ObjectMapper().writeValueAsString(tareaInvalida))
+            )
+            .andExpect(status().isBadRequest)
+            .andReturn().resolvedException?.message
+
+        assertEquals(errorMessage, "No debe pasar el identificador de la tarea")
+    }
+
+    @Test
+    fun `si se intenta crear una tarea pasando un asignatario invalido, el sistema rechaza la operacion`() {
+        val tareaSinAsignatario = """
+            {
+                "descripcion":  "Resolver testeo unitario de tarea",
+                "asignadoA": "Mengueche",
+                "fecha": "21/05/2021",
+                "iteracion": "Iteracion 1",
+                "porcentajeCumplimiento": 40
+            }
+        """.trimIndent()
+
+        val errorMessage = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/tareas")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaSinAsignatario)
+            )
+            .andExpect(status().isNotFound)
+            .andReturn().resolvedException?.message
+
+        assertEquals(errorMessage, "No se encontró el usuario <Mengueche>")
+    }
     // end region
 
     fun buildTarea(): Tarea {
