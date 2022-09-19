@@ -19,14 +19,13 @@ repositories {
     mavenCentral()
 }
 
-val springVersion = "2.7.1"
+val springVersion = "2.7.3"
 
 dependencies {
-    implementation("org.uqbar-project:uqbar-domain:3.6.3")
     implementation("org.springframework.boot:spring-boot-starter-web:$springVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.springdoc:springdoc-openapi-ui:1.6.6")
+    implementation("org.springdoc:springdoc-openapi-ui:1.6.11")
     providedRuntime("org.springframework.boot:spring-boot-starter-tomcat:$springVersion")
     testImplementation("org.springframework.boot:spring-boot-starter-test:$springVersion")
 }

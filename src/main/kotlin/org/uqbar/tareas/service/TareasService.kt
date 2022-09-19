@@ -21,16 +21,14 @@ class TareasService {
 
     fun tareaPorId(id: Int): Tarea = tareasRepository.searchById(id) ?: throw NotFoundException("No se encontró la tarea de id <$id>")
 
-    fun buscar(tareaBusqueda: Tarea) = tareasRepository.searchByExample(tareaBusqueda)
+    fun buscar(tareaBusqueda: Tarea) = tareasRepository.search(tareaBusqueda)
 
     fun actualizar(id: Int, tareaActualizada: Tarea): Tarea {
         if (tareaActualizada.id !== null && tareaActualizada.id != id) {
             throw BusinessException("Id en URL distinto del id que viene en el body")
         }
         val tarea = tareaPorId(id)
-        val nombreAsignatario = tareaActualizada.asignatario?.nombre
-        // Solo llamamos a getAsignatario si el nombre contiene un valor distinto de null
-        tareaActualizada.asignatario = nombreAsignatario?.let { usuariosRepository.getAsignatario(it) }
+        asignar(tareaActualizada)
         // Pisamos los valores del repo con los nuevos datos
         tarea.actualizar(tareaActualizada)
         tarea.validar()
@@ -38,4 +36,19 @@ class TareasService {
         return tarea
     }
 
+    fun crear(nuevaTarea: Tarea): Tarea {
+        if (nuevaTarea.id !== null) {
+            throw BusinessException("No debe pasar el identificador de la tarea")
+        }
+        asignar(nuevaTarea)
+        nuevaTarea.validar()
+        tareasRepository.create(nuevaTarea)
+        return nuevaTarea
+    }
+
+    private fun asignar(tareaActualizada: Tarea) {
+        val nombreAsignatario = tareaActualizada.asignatario?.nombre
+        // Solo llamamos a getAsignatario si el nombre contiene un valor distinto de null
+        tareaActualizada.asignatario = nombreAsignatario?.let { usuariosRepository.getAsignatario(it) ?: throw NotFoundException("No se encontró el usuario <$it>") }
+    }
 }

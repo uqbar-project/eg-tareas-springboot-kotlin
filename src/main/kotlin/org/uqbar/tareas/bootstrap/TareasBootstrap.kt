@@ -22,16 +22,16 @@ class TareasBootstrap : InitializingBean {
 
     fun crearTareas() {
         tareasRepository.apply {
-            crearTarea("Desarrollar componente de envio de mails", juan, LocalDate.now(), "Iteración 1", 0)
-            crearTarea(
+            create("Desarrollar componente de envio de mails", juan, LocalDate.now(), "Iteración 1", 0)
+            create(
                 "Implementar single sign on desde la extranet", null, LocalDate.of(2018, 9, 9), "Iteración 1",
                 76
             )
-            crearTarea(
+            create(
                 "Cancelar pedidos que esten pendientes desde hace 2 meses", rodrigo, LocalDate.of(2018, 6, 30),
                 "Iteración 1", 22
             )
-            crearTarea(
+            create(
                 "Mostrar info del pedido cuando esta finalizado", null, LocalDate.of(2018, 8, 10), "Iteración 2",
                 90
             )

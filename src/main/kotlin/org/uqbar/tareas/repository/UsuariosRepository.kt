@@ -1,32 +1,27 @@
 package org.uqbar.tareas.repository
 
-import org.apache.commons.collections15.Predicate
 import org.springframework.stereotype.Component
-import org.uqbar.commons.model.CollectionBasedRepo
 import org.uqbar.tareas.domain.Usuario
-import org.uqbar.tareas.errors.NotFoundException
 
 @Component
-class UsuariosRepository : CollectionBasedRepo<Usuario>() {
+class UsuariosRepository {
+    val usuarios = mutableListOf<Usuario>()
 
-    override fun createExample() = Usuario("")
-
-    override fun getEntityType() = Usuario::class.java
-
-    override fun getCriterio(example: Usuario): Predicate<Usuario>  =
-        Predicate<Usuario> {
-            usuario -> usuario.nombre.uppercase().contains(example.nombre.uppercase())
-        }
-
-    fun getAsignatario(nombreAsignatario: String): Usuario {
-        val usuariosByExample = searchByExample(Usuario(nombreAsignatario))
-        if (usuariosByExample.isEmpty()) {
-            throw NotFoundException("No se encontró el usuario <$nombreAsignatario>")
-        }
-        return usuariosByExample.first()
+    companion object {
+        var ultimoId = 1
     }
 
+    fun allInstances() = usuarios
+
+    fun create(usuario: Usuario): Usuario {
+        usuario.id = ultimoId++
+        usuarios.add(usuario)
+        return usuario
+    }
+
+    fun getAsignatario(nombre: String) = usuarios.find { it.nombre.uppercase() == nombre.uppercase() }
+
     fun clear() {
-        this.objects.clear()
+        usuarios.clear()
     }
 }

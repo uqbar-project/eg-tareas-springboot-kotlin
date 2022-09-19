@@ -38,8 +38,8 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
         tareasRepository.clear()
         usuario = Usuario("Juan Contardo")
         usuariosRepository.create(usuario)
-        tarea = tareasRepository.crearTarea(buildTarea())
-        tareasRepository.crearTarea(buildTarea().also {
+        tarea = tareasRepository.create(buildTarea())
+        tareasRepository.create(buildTarea().also {
             it.descripcion = "Implementar single sign on desde la extranet"
             it.fecha = LocalDate.of(2018, 9, 9)
             it.iteracion = "Iteracion 1"
@@ -47,6 +47,7 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
         })
     }
 
+    // region tareas
     @Test
     fun `se pueden obtener todas las tareas`() {
         mockMvc
@@ -55,7 +56,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.length()").value(2))
     }
+    // end region
 
+    // region tareas/search
     @Test
     fun `se pueden pedir las tareas que contengan cierta descripcion`() {
         val tareaBusqueda = buildTarea()
@@ -88,7 +91,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.length()").value(0))
     }
+    // end region
 
+    // region tareas/{id}
     @Test
     fun `se puede obtener una tarea por su id`() {
         mockMvc
@@ -105,7 +110,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .perform(MockMvcRequestBuilders.get("/tareas/20000"))
             .andExpect(status().isNotFound)
     }
+    // end region
 
+    // region actualizar tarea
     @Test
     fun `actualizar una tarea a un valor valido actualiza correctamente`() {
         val tareaValida = buildTarea().apply {
@@ -125,7 +132,7 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
     }
 
     @Test
-    fun `si se intenta actualizar una tarea con datos incorrectos se produce bad request`() {
+    fun `si se intenta actualizar una tarea con datos incorrectos, el sistema rechaza la operacion`() {
         val tareaInvalida = buildTarea().apply {
             id = tarea.id
             descripcion = ""
@@ -170,7 +177,7 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
     }
 
     @Test
-    fun `si se intenta asignar a un usuario inexistente, al actualizar se produce un badRequest`() {
+    fun `si se intenta asignar a un usuario inexistente, el sistema rechaza la operacion`() {
         val tareaSinAsignatario = """
             {
                 "id": ${tarea.id},
@@ -196,7 +203,7 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
     }
 
     @Test
-    fun `si se intenta actualizar una tarea con id diferente en el request y en el body se produce bad request`() {
+    fun `si se intenta actualizar una tarea con id diferente en el request y en el body, el sistema rechaza la operacion`() {
         val tareaJson = """
             {
                 "id": 1,
@@ -219,6 +226,33 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
 
         assertEquals(errorMessage, "Id en URL distinto del id que viene en el body")
     }
+    // end region
+
+    // region crear tarea
+    @Test
+    fun `crear una tarea a un valor valido actualiza correctamente`() {
+        val descripcionNuevaTarea = "Implementar un servicio REST para crear una tarea"
+        val mapper = ObjectMapper()
+        val tareaValida = buildTarea().apply {
+            descripcion = descripcionNuevaTarea
+        }
+        val nuevaTareaResponse = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/tareas")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(tareaValida))
+            )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/json"))
+            .andReturn().response.contentAsString
+
+        val nuevaTareaObject = mapper.readValue(nuevaTareaResponse, Tarea::class.java)
+        val nuevaTarea = tareasRepository.searchById(nuevaTareaObject.id!!)
+        assertEquals(nuevaTarea!!.descripcion, descripcionNuevaTarea)
+    }
+
+    // end region
 
     fun buildTarea(): Tarea {
         return Tarea().apply {

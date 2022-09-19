@@ -2,7 +2,6 @@ package org.uqbar.tareas.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.uqbar.commons.model.Entity
 import org.uqbar.tareas.errors.BusinessException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

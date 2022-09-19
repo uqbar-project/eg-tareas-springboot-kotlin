@@ -31,4 +31,9 @@ class TareasController {
         return tareasService.actualizar(id, tareaBody)
     }
 
+    @PostMapping("/tareas")
+    @Operation(summary = "Permite crear una tarea nueva")
+    fun crear(@RequestBody tareaBody: Tarea): Tarea {
+        return tareasService.crear(tareaBody)
+    }
 }
