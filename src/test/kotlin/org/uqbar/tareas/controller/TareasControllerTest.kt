@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.uqbar.tareas.domain.Tarea
@@ -314,6 +315,32 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andReturn().resolvedException?.message
 
         assertEquals(errorMessage, "No se encontró el usuario <Mengueche>")
+    }
+    // end region
+
+    // region delete tarea
+    @Test
+    fun `se puede eliminar una tarea existente en forma exitosa`() {
+        val descripcion = "Resolver consulta de usuarios sin tareas"
+        val tarea = buildTarea().also {
+            it.descripcion = descripcion
+            it.fecha = LocalDate.now()
+            it.iteracion = "Iteracion 1"
+            it.porcentajeCumplimiento = 0
+        }
+        tareasRepository.create(tarea)
+
+        mockMvc.delete("/tareas/${descripcion}")
+            .andExpect { status { isOk() } }
+
+        assertEquals(0, tareasRepository.search(tarea).size)
+    }
+
+    @Test
+    fun `si pasamos tareas que no existen no se pueden borrar`() {
+        mockMvc.perform(MockMvcRequestBuilders.delete("/tareas/inexistente"))
+            .andExpect { status().isOk }
+            .andExpect(jsonPath("$.length()").value(0))
     }
     // end region
 
