@@ -14,7 +14,9 @@ class TareasRepository {
         var ultimoId = 1
     }
 
-    fun allInstances() = tareas
+    fun allInstances(): List<Tarea> {
+        return tareas
+    }
 
     fun create(
         unaDescripcion: String,
@@ -49,6 +51,11 @@ class TareasRepository {
         val indexTarea = tareas.indexOf(searchById(tarea.id!!))
         tareas.removeAt(indexTarea)
         tareas.add(indexTarea, tarea)
+        return tarea
+    }
+
+    fun delete(tarea: Tarea): Tarea {
+        tareas.remove(tarea)
         return tarea
     }
 

@@ -31,6 +31,12 @@ class TareasController {
         return tareasService.actualizar(id, tareaBody)
     }
 
+    @DeleteMapping("/tareas/{descripcion}")
+    @Operation(summary = "Permite eliminar una tarea por descripcion")
+    fun actualizar(@PathVariable descripcion: String): List<Tarea> {
+        return tareasService.borrar(descripcion)
+    }
+
     @PostMapping("/tareas")
     @Operation(summary = "Permite crear una tarea nueva")
     fun crear(@RequestBody tareaBody: Tarea): Tarea {
