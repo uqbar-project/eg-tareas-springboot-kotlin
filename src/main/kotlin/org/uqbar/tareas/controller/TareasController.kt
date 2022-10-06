@@ -33,7 +33,7 @@ class TareasController {
 
     @DeleteMapping("/tareas/{descripcion}")
     @Operation(summary = "Permite eliminar una tarea por descripcion")
-    fun actualizar(@PathVariable descripcion: String): List<Tarea> {
+    fun eliminar(@PathVariable descripcion: String): List<Tarea> {
         return tareasService.borrar(descripcion)
     }
 

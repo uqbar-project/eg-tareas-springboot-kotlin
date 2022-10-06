@@ -21,18 +21,19 @@ class TareasBootstrap : InitializingBean {
     lateinit var rodrigo: Usuario
 
     fun crearTareas() {
+        val thisYear = LocalDate.now().year
         tareasRepository.apply {
-            create("Desarrollar componente de envio de mails", juan, LocalDate.now(), "Iteración 1", 0)
+            create("Algo2: migrar ejemplo de Decorator a Kotlin", juan, LocalDate.now(), "Iteración 1", 0)
             create(
-                "Implementar single sign on desde la extranet", null, LocalDate.of(2018, 9, 9), "Iteración 1",
+                "Algo3: Preparar TP de React", null, LocalDate.of(thisYear, 9, 9), "Iteración 1",
                 76
             )
             create(
-                "Cancelar pedidos que esten pendientes desde hace 2 meses", rodrigo, LocalDate.of(2018, 6, 30),
+                "PHM: Planificar cursada", rodrigo, LocalDate.of(thisYear, 6, 30),
                 "Iteración 1", 22
             )
             create(
-                "Mostrar info del pedido cuando esta finalizado", null, LocalDate.of(2018, 8, 10), "Iteración 2",
+                "Armar una página de la wiki que explique colecciones en Kotlin", null, LocalDate.of(thisYear, 8, 10), "Iteración 2",
                 90
             )
         }
@@ -45,7 +46,7 @@ class TareasBootstrap : InitializingBean {
         usuariosRepository.apply {
             create(Usuario("Fernando Dodino"))
             create(rodrigo)
-            create(Usuario("Dario Grinberg"))
+            create(Usuario("Jorge Luis Lescano"))
             create(juan)
             create(Usuario("Nahuel Palumbo"))
         }
