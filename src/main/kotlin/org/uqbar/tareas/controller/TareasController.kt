@@ -10,36 +10,36 @@ import org.uqbar.tareas.service.TareasService
 @CrossOrigin("*")
 class TareasController {
 
-    @Autowired
-    lateinit var tareasService: TareasService
+   @Autowired
+   lateinit var tareasService: TareasService
 
-    @GetMapping("/tareas")
-    @Operation(summary = "Devuelve todas las tareas")
-    fun tareas() = tareasService.tareas()
+   @GetMapping("/tareas")
+   @Operation(summary = "Devuelve todas las tareas")
+   fun tareas() = tareasService.tareas()
 
-    @GetMapping("/tareas/{id}")
-    @Operation(summary = "Permite conocer la información de una tarea por identificador")
-    fun tareaPorId(@PathVariable id: Int) = tareasService.tareaPorId(id)
+   @GetMapping("/tareas/{id}")
+   @Operation(summary = "Permite conocer la información de una tarea por identificador")
+   fun tareaPorId(@PathVariable id: Int) = tareasService.tareaPorId(id)
 
-    @GetMapping("/tareas/search")
-    @Operation(summary = "Devuelve todas las tareas cuya descripción contiene la descripción que pasamos como parámetro")
-    fun buscar(@RequestBody tareaBusqueda: Tarea) = tareasService.buscar(tareaBusqueda)
+   @GetMapping("/tareas/search")
+   @Operation(summary = "Devuelve todas las tareas cuya descripción contiene la descripción que pasamos como parámetro")
+   fun buscar(@RequestBody tareaBusqueda: Tarea) = tareasService.buscar(tareaBusqueda)
 
-    @PutMapping("/tareas/{id}")
-    @Operation(summary = "Permite actualizar la información de una tarea")
-    fun actualizar(@PathVariable id: Int, @RequestBody tareaBody: Tarea): Tarea {
-        return tareasService.actualizar(id, tareaBody)
-    }
+   @PutMapping("/tareas/{id}")
+   @Operation(summary = "Permite actualizar la información de una tarea")
+   fun actualizar(@PathVariable id: Int, @RequestBody tareaBody: Tarea): Tarea {
+      return tareasService.actualizar(id, tareaBody)
+   }
 
-    @DeleteMapping("/tareas/{descripcion}")
-    @Operation(summary = "Permite eliminar una tarea por descripcion")
-    fun eliminar(@PathVariable descripcion: String): List<Tarea> {
-        return tareasService.borrar(descripcion)
-    }
+   @DeleteMapping("/tareas/{descripcion}")
+   @Operation(summary = "Permite eliminar una tarea por descripcion")
+   fun eliminar(@PathVariable descripcion: String): List<Tarea> {
+      return tareasService.borrar(descripcion)
+   }
 
-    @PostMapping("/tareas")
-    @Operation(summary = "Permite crear una tarea nueva")
-    fun crear(@RequestBody tareaBody: Tarea): Tarea {
-        return tareasService.crear(tareaBody)
-    }
+   @PostMapping("/tareas")
+   @Operation(summary = "Permite crear una tarea nueva")
+   fun crear(@RequestBody tareaBody: Tarea): Tarea {
+      return tareasService.crear(tareaBody)
+   }
 }
