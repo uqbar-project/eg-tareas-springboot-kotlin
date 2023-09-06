@@ -53,9 +53,7 @@ Las opciones para probarlo (ya sea con POSTMAN o una aplicación cliente) son la
 
 Entonces visualizarán en la consola el log del servidor levantado:
 
-// TODO: Cambiar la imagen
-
-![tomcat-server-started](https://user-images.githubusercontent.com/26492157/88977567-88c7a700-d294-11ea-82a6-7e68895cd1b9.PNG)
+![tomcat-server-started](./images/startingApp.gif)
 
 ### Rutas
 
