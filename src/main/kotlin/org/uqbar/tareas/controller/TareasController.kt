@@ -22,7 +22,17 @@ class TareasController {
    fun tareaPorId(@PathVariable id: Int) = tareasService.tareaPorId(id)
 
    @GetMapping("/tareas/search")
-   @Operation(summary = "Devuelve todas las tareas cuya descripción contiene la descripción que pasamos como parámetro")
+   @Operation(
+      deprecated = true,
+      summary = "Devuelve todas las tareas cuya descripción contiene la descripción que pasamos como parámetro",
+      description = "No utilizar este endpoint, ya que puede no funcionar correctamente. Utilizar el equivalente de tipo POST en cambio"
+   )
+   fun oldBuscar(@RequestBody tareaBusqueda: Tarea) = tareasService.buscar(tareaBusqueda)
+
+   @PostMapping("/tareas/search")
+   @Operation(
+      summary = "Devuelve todas las tareas cuya descripción contiene la descripción que pasamos como parámetro",
+   )
    fun buscar(@RequestBody tareaBusqueda: Tarea) = tareasService.buscar(tareaBusqueda)
 
    @PutMapping("/tareas/{id}")
