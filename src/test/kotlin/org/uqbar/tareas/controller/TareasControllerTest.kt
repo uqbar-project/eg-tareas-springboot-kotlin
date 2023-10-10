@@ -63,12 +63,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
     @Test
     fun `se pueden pedir las tareas que contengan cierta descripcion`() {
         val tareaBusqueda = buildTarea()
-        println(ObjectMapper().writeValueAsString(tareaBusqueda))
         mockMvc
             .perform(
-                MockMvcRequestBuilders.get("/tareas/search")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(ObjectMapper().writeValueAsString(tareaBusqueda))
+                MockMvcRequestBuilders.get("/tareas/search?descripcion=${tareaBusqueda.descripcion}")
             )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/json"))
@@ -84,9 +81,7 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/tareas/search")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(ObjectMapper().writeValueAsString(tareaBusqueda))
+                    .get("/tareas/search?descripcion=${tareaBusqueda.descripcion}")
             )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/json"))

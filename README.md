@@ -84,15 +84,19 @@ Es interesante ver la definición **del objeto de negocio Tarea** ya que en luga
 
 ```kt
 class Tarea : Entity() {
-    ...
-    
+    // [...]
+
     @JsonIgnore
     var fecha = LocalDate.now()
 
-    ...
-    
+    // [...]
+
     @JsonProperty("fecha")
     fun getFechaAsString() = formatter.format(this.fecha)
+
+    // [...]
+  
+}
 ```
 
 Del mismo modo, la propiedad asignatario se oculta para publicar otra llamada "asignadoA" que es un String:
@@ -100,8 +104,8 @@ Del mismo modo, la propiedad asignatario se oculta para publicar otra llamada "a
 ```kt
 class Tarea : Entity() {
 
-    ...
-    
+    // [...]
+
     @JsonIgnore
     var asignatario: Usuario? = null
 
@@ -112,7 +116,9 @@ class Tarea : Entity() {
     fun setAsignatario(nombreAsignatario: String) {
         asignatario = Usuario(nombreAsignatario)
     }
+  // [...]
 
+}
 ```
 
 Surgen las preguntas: ¿por qué?, ¿es necesario?.
@@ -212,7 +218,7 @@ En la clase Tarea, le asociamos nuestro serializador _custom_:
 
 ```kt
 @JsonSerialize(using=TareaSerializer::class)
-class Tarea : Entity() {
+class Tarea : Entity() { /* ... */ }
 ```
 
 Esto nos permite devolver la lista de tareas satisfactoriamente, porque generamos un JSON propio. Tenemos un gran control sobre el algoritmo de serialización. Podemos alterar el orden en el que construimos cada atributo, por ejemplo podemos alternar las líneas fecha y porcentajeCumplimiento:
@@ -265,7 +271,7 @@ Y también hay que configurarlo en la clase Tarea:
 ```kt
 @JsonSerialize(using=TareaSerializer::class)
 @JsonDeserialize(using=TareaDeserializer::class)
-class Tarea : Entity() {
+class Tarea : Entity() { /* ... */ }
 ```
 
 El deserializador necesita manejar correctamente
@@ -404,6 +410,61 @@ class RestExceptionHandler : ResponseEntityExceptionHandler {
 ```
 
 De la misma manera que vamos desde excepciones más particulares a más generales, el exception handler va definiendo comportamiento para cada una de las excepciones a partir de métodos `handleException`.
+
+## Versionado de API (Deprecación de endpoints)
+
+Supongamos que recibimos un cambio en los requerimientos de nuestra aplicación: En lugar de ser un `String`, el nombre de un `Usuario` debe pasar a ser un objeto de clase `NombreCompleto`:
+
+```kotlin
+data class NombreCompleto(val primerNombre: String, val apellido: String)
+```
+
+```kotlin
+class Usuario(val nombre: NombreCompleto) : Entity() { /* ... */ }
+```
+
+En principio no es un cambio enorme. Podríamos adaptar nuestra entidad, su repositorio, su service y su controller para manejar este cambio. Bastante refactor de por medio, pero es algo que se puede hacer.
+
+En este ejemplo, alterar Usuario.nombre de `String` a `NombreCompleto` repercute en:
+
+* `Tarea.asignadoA` (Pasa de String a NombreCompleto)
+  * Esto incluye cualquier endpoint que reciba una [Tarea] en su Body, ya que necesita traducir el "asignadoA" de la tarea a un nombre. 
+* `TareasService.tareas` (ordena en base a asignatario.nombre)
+* `UsuariosRepository.getAsignatario` (busca en base al String "nombre")
+  * Afecta a la creación y actualización de tareas
+
+
+Existe, sin embargo, la posibilidad de que nuestra API ya esté siendo consumida en su versión actual por alguna aplicación externa (fuera de nuestro control) que dependa de ella. Esto puede aumentar un poco la complejidad del cambio, ya que alterar nuestros endpoints o nuestros JSON de entrada/salida puede romper el funcionamiento de dichas aplicaciones.
+
+Existen diferentes estrategias para encarar este problema, y no hay una que sea realmente perfecta. Una posibilidad sería tener en el comienzo de la URI para nuestros endpoints un indicador de versión:
+
+```kotlin
+@RestController
+@RequestMapping("/api/v1") // <- Prefijo agregado
+@CrossOrigin("*")
+class TareasController(val tareasService: TareasService) {
+    // [...]
+}
+```
+
+Esto tiene de ventaja poder mantener soporte para ambas versiones en simultaneo, eventualmente dando de baja la versión original cuando su uso sea lo suficientemente bajo (o nulo).
+
+Por otro lado, versionar de esta forma puede volverse costoso de mantener. Ante el más minimo cambio rompedor que haya que introducir, toca crear una rama nueva de endpoints (posiblemente teniendo que migrar o duplicar multiples endpoints "no afectados" por el cambio). En nuestro ejemplo, todos los endpoints no dependientes en el nombre tendrían que ser movidos, y sus tests corregidos.
+
+También está el tema de documentar la API. Hay que transmitir de alguna forma la información a los consumidores de la misma respecto a cual es la diferencia entre solicitar una "Tarea v1" y una "Tarea v2"; peor con recursos sin cambios, como "Usuario v1" y "Usuario v2". Esto puede remediarse ligeramente sincronizando la versión de la aplicación con aquella expuesta por la API (sobre todo si la aplicación utiliza versionado semántico - la API v2 puede ser lanzada junto a una version 2.x.x de la app)
+
+### Soluciones alternativas
+
+Como se menciono, versionar mediante la URL no es el único método. Otras opciones incluyen:
+
+* Versionar mediante query params (`/api/tareas?version=1`)
+* Usando headers personalizados en la request (`Accepts-version: 1.0`)
+* Una combinación de los anteriores (tener en la URL una version mayor para cambios mayores, y query params para variantes menores de un solo endpoint)
+
+Podría dedicarse una clase entera a armado de APIs, particularmente este tema. Pueden encontrar un poco más de información y alternativas en estos enlaces:
+* [Versioning a REST API - Baeldung](https://www.baeldung.com/rest-versioning)
+* [How to Version a REST API - freeCodeCamp](https://freecodecamp.org/news/how-to-version-a-rest-api/)
+
 
 ## Diagrama general de la arquitectura
 
