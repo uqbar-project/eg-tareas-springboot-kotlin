@@ -1,6 +1,5 @@
 package org.uqbar.tareas.service
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.uqbar.tareas.domain.Tarea
 import org.uqbar.tareas.errors.BusinessException
@@ -9,13 +8,10 @@ import org.uqbar.tareas.repository.TareasRepository
 import org.uqbar.tareas.repository.UsuariosRepository
 
 @Service
-class TareasService {
-
-   @Autowired
-   lateinit var tareasRepository: TareasRepository
-
-   @Autowired
-   lateinit var usuariosRepository: UsuariosRepository
+class TareasService(
+   val tareasRepository: TareasRepository,
+   val usuariosRepository: UsuariosRepository
+) {
 
    fun tareas() = tareasRepository.allInstances()
 

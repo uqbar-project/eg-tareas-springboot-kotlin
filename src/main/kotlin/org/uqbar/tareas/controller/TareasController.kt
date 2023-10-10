@@ -1,17 +1,13 @@
 package org.uqbar.tareas.controller
 
 import io.swagger.v3.oas.annotations.Operation
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import org.uqbar.tareas.domain.Tarea
 import org.uqbar.tareas.service.TareasService
 
 @RestController
 @CrossOrigin("*")
-class TareasController {
-
-   @Autowired
-   lateinit var tareasService: TareasService
+class TareasController(val tareasService: TareasService) {
 
    @GetMapping("/tareas")
    @Operation(summary = "Devuelve todas las tareas")
