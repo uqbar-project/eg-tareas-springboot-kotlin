@@ -9,8 +9,8 @@ import java.time.format.DateTimeFormatter
 class Tarea : Entity() {
     companion object {
         const val TAREA_COMPLETA = 100
-        const val DATE_PATTERN = "dd/MM/yyyy"
-        val formatter = DateTimeFormatter.ofPattern(DATE_PATTERN)
+        private const val DATE_PATTERN = "dd/MM/yyyy"
+        private val formatter = DateTimeFormatter.ofPattern(DATE_PATTERN)
     }
 
     var descripcion = ""
@@ -27,9 +27,6 @@ class Tarea : Entity() {
         if (descripcion.isEmpty()) {
             throw BusinessException("Debe ingresar descripcion")
         }
-        if (fecha === null) {
-            throw BusinessException("Debe ingresar fecha")
-        }
     }
 
     fun estaCumplida() = porcentajeCumplimiento == TAREA_COMPLETA
@@ -45,10 +42,12 @@ class Tarea : Entity() {
     }
 
     @JsonProperty("fecha")
-    fun getFechaAsString() = formatter.format(this.fecha)
+    fun getFechaAsString(): String = formatter.format(this.fecha)
 
     @JsonProperty("fecha")
-    fun asignarFecha(fecha: String) {
+    fun asignarFecha(fecha: String?) {
+        if (fecha === null)
+            throw BusinessException("Debe ingresar una fecha")
         this.fecha = LocalDate.parse(fecha, formatter)
     }
 

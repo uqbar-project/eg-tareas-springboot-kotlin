@@ -48,7 +48,7 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
         })
     }
 
-    // region tareas
+    // region GET /tareas
     @Test
     fun `se pueden obtener todas las tareas`() {
         mockMvc
@@ -57,18 +57,15 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.length()").value(2))
     }
-    // end region
+    // endregion
 
-    // region tareas/search
+    // region GET /tareas/search
     @Test
     fun `se pueden pedir las tareas que contengan cierta descripcion`() {
         val tareaBusqueda = buildTarea()
-        println(ObjectMapper().writeValueAsString(tareaBusqueda))
         mockMvc
             .perform(
-                MockMvcRequestBuilders.get("/tareas/search")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(ObjectMapper().writeValueAsString(tareaBusqueda))
+                MockMvcRequestBuilders.get("/tareas/search?descripcion=${tareaBusqueda.descripcion}")
             )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/json"))
@@ -84,17 +81,15 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/tareas/search")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(ObjectMapper().writeValueAsString(tareaBusqueda))
+                    .get("/tareas/search?descripcion=${tareaBusqueda.descripcion}")
             )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.length()").value(0))
     }
-    // end region
+    // endregion
 
-    // region tareas/{id}
+    // region GET /tareas/{id}
     @Test
     fun `se puede obtener una tarea por su id`() {
         mockMvc
@@ -111,9 +106,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .perform(MockMvcRequestBuilders.get("/tareas/20000"))
             .andExpect(status().isNotFound)
     }
-    // end region
+    // endregion
 
-    // region actualizar tarea
+    // region [actualizar] PUT /tareas/{id}
     @Test
     fun `actualizar una tarea a un valor valido actualiza correctamente`() {
         val tareaValida = buildTarea().apply {
@@ -130,6 +125,25 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.porcentajeCumplimiento").value("70"))
+    }
+
+    @Test
+    fun `si se intenta actualizar una tarea omitiendo su id en json, el sistema rechaza la operacion`() {
+        val tareaInvalida = buildTarea().apply {
+            id = null
+        }
+
+        val errorMessage = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/" + tarea.id)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(ObjectMapper().writeValueAsString(tareaInvalida))
+            )
+            .andExpect(status().isBadRequest)
+            .andReturn().resolvedException?.message
+
+        assertEquals(errorMessage, "Debe proveerse el ID de la tarea a actualizar")
     }
 
     @Test
@@ -150,6 +164,34 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andReturn().resolvedException?.message
 
         assertEquals(errorMessage, "Debe ingresar descripcion")
+    }
+
+    @Test
+    fun `si se intenta actualizar una tarea sin fecha, el sistema rechaza la operacion`() {
+        val tareaSinFecha = """
+            {
+                "id": ${tarea.id},
+                "descripcion":  "Resolver testeo unitario de tarea",
+                "fecha": null,
+                "iteracion": "Iteracion 1",
+                "asignadoA": "Guillermo Bianchi",
+                "porcentajeCumplimiento": 40
+            }
+        """.trimIndent()
+
+        val errorMessage = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/" + tarea.id)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaSinFecha)
+            )
+            .andExpect(status().isBadRequest)
+            .andReturn().resolvedException?.message
+
+        // Este error ocurre a nivel deserialización
+        // Aplicamos split para ignorar la parte inicial, "JSON parse error: <nuestro mensaje>"
+        assertEquals(errorMessage?.split(": ")?.last(), "Debe ingresar una fecha")
     }
 
     @Test
@@ -227,9 +269,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
 
         assertEquals(errorMessage, "Id en URL distinto del id que viene en el body")
     }
-    // end region
+    // endregion
 
-    // region crear tarea
+    // region [crear] POST /tareas
     @Test
     fun `crear una tarea a un valor valido actualiza correctamente`() {
         val descripcionNuevaTarea = "Implementar un servicio REST para crear una tarea"
@@ -316,9 +358,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
 
         assertEquals(errorMessage, "No se encontró el usuario <Mengueche>")
     }
-    // end region
+    // endregion
 
-    // region delete tarea
+    // region DELETE /tarea/{descripcion}
     @Test
     fun `se puede eliminar una tarea existente en forma exitosa`() {
         val descripcion = "Resolver consulta de usuarios sin tareas"
@@ -342,7 +384,7 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andExpect { status().isOk }
             .andExpect(jsonPath("$.length()").value(0))
     }
-    // end region
+    // endregion
 
     fun buildTarea(): Tarea {
         return Tarea().apply {

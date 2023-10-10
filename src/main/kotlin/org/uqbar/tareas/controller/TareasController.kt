@@ -1,17 +1,13 @@
 package org.uqbar.tareas.controller
 
 import io.swagger.v3.oas.annotations.Operation
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import org.uqbar.tareas.domain.Tarea
 import org.uqbar.tareas.service.TareasService
 
 @RestController
 @CrossOrigin("*")
-class TareasController {
-
-   @Autowired
-   lateinit var tareasService: TareasService
+class TareasController(val tareasService: TareasService) {
 
    @GetMapping("/tareas")
    @Operation(summary = "Devuelve todas las tareas")
@@ -22,8 +18,10 @@ class TareasController {
    fun tareaPorId(@PathVariable id: Int) = tareasService.tareaPorId(id)
 
    @GetMapping("/tareas/search")
-   @Operation(summary = "Devuelve todas las tareas cuya descripción contiene la descripción que pasamos como parámetro")
-   fun buscar(@RequestBody tareaBusqueda: Tarea) = tareasService.buscar(tareaBusqueda)
+   @Operation(
+      summary = "Devuelve todas las tareas cuya descripción contiene los valores pasados por parametro"
+   )
+   fun buscar(@RequestParam(name = "descripcion") descripcionTarea: String) = tareasService.buscar(Tarea().apply{descripcion = descripcionTarea})
 
    @PutMapping("/tareas/{id}")
    @Operation(summary = "Permite actualizar la información de una tarea")

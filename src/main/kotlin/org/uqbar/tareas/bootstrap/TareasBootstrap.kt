@@ -1,7 +1,6 @@
 package org.uqbar.tareas.bootstrap
 
 import org.springframework.beans.factory.InitializingBean
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.uqbar.tareas.domain.Usuario
 import org.uqbar.tareas.repository.TareasRepository
@@ -9,16 +8,13 @@ import org.uqbar.tareas.repository.UsuariosRepository
 import java.time.LocalDate
 
 @Service
-class TareasBootstrap : InitializingBean {
+class TareasBootstrap(
+    val tareasRepository: TareasRepository,
+    val usuariosRepository: UsuariosRepository
+) : InitializingBean {
 
-    @Autowired
-    lateinit var tareasRepository: TareasRepository
-
-    @Autowired
-    lateinit var usuariosRepository: UsuariosRepository
-
-    lateinit var juan: Usuario
-    lateinit var rodrigo: Usuario
+    private lateinit var juan: Usuario
+    private lateinit var rodrigo: Usuario
 
     fun crearTareas() {
         val thisYear = LocalDate.now().year
