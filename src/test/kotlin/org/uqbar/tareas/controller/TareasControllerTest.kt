@@ -48,7 +48,7 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
         })
     }
 
-    // region tareas
+    // region GET /tareas
     @Test
     fun `se pueden obtener todas las tareas`() {
         mockMvc
@@ -57,9 +57,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.length()").value(2))
     }
-    // end region
+    // endregion
 
-    // region tareas/search
+    // region GET /tareas/search
     @Test
     fun `se pueden pedir las tareas que contengan cierta descripcion`() {
         val tareaBusqueda = buildTarea()
@@ -87,9 +87,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.length()").value(0))
     }
-    // end region
+    // endregion
 
-    // region tareas/{id}
+    // region GET /tareas/{id}
     @Test
     fun `se puede obtener una tarea por su id`() {
         mockMvc
@@ -106,9 +106,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .perform(MockMvcRequestBuilders.get("/tareas/20000"))
             .andExpect(status().isNotFound)
     }
-    // end region
+    // endregion
 
-    // region actualizar tarea
+    // region [actualizar] PUT /tareas/{id}
     @Test
     fun `actualizar una tarea a un valor valido actualiza correctamente`() {
         val tareaValida = buildTarea().apply {
@@ -222,9 +222,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
 
         assertEquals(errorMessage, "Id en URL distinto del id que viene en el body")
     }
-    // end region
+    // endregion
 
-    // region crear tarea
+    // region [crear] POST /tareas
     @Test
     fun `crear una tarea a un valor valido actualiza correctamente`() {
         val descripcionNuevaTarea = "Implementar un servicio REST para crear una tarea"
@@ -311,9 +311,9 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
 
         assertEquals(errorMessage, "No se encontró el usuario <Mengueche>")
     }
-    // end region
+    // endregion
 
-    // region delete tarea
+    // region DELETE /tarea/{descripcion}
     @Test
     fun `se puede eliminar una tarea existente en forma exitosa`() {
         val descripcion = "Resolver consulta de usuarios sin tareas"
@@ -337,7 +337,7 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andExpect { status().isOk }
             .andExpect(jsonPath("$.length()").value(0))
     }
-    // end region
+    // endregion
 
     fun buildTarea(): Tarea {
         return Tarea().apply {
