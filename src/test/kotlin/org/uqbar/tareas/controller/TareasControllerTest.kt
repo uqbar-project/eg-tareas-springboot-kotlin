@@ -128,6 +128,25 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
     }
 
     @Test
+    fun `si se intenta actualizar una tarea omitiendo su id en json, el sistema rechaza la operacion`() {
+        val tareaInvalida = buildTarea().apply {
+            id = null
+        }
+
+        val errorMessage = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/" + tarea.id)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(ObjectMapper().writeValueAsString(tareaInvalida))
+            )
+            .andExpect(status().isBadRequest)
+            .andReturn().resolvedException?.message
+
+        assertEquals(errorMessage, "Debe proveerse el ID de la tarea a actualizar")
+    }
+
+    @Test
     fun `si se intenta actualizar una tarea con datos incorrectos, el sistema rechaza la operacion`() {
         val tareaInvalida = buildTarea().apply {
             id = tarea.id
@@ -145,6 +164,34 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andReturn().resolvedException?.message
 
         assertEquals(errorMessage, "Debe ingresar descripcion")
+    }
+
+    @Test
+    fun `si se intenta actualizar una tarea sin fecha, el sistema rechaza la operacion`() {
+        val tareaSinFecha = """
+            {
+                "id": ${tarea.id},
+                "descripcion":  "Resolver testeo unitario de tarea",
+                "fecha": null,
+                "iteracion": "Iteracion 1",
+                "asignadoA": "Guillermo Bianchi",
+                "porcentajeCumplimiento": 40
+            }
+        """.trimIndent()
+
+        val errorMessage = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/" + tarea.id)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaSinFecha)
+            )
+            .andExpect(status().isBadRequest)
+            .andReturn().resolvedException?.message
+
+        // Este error ocurre a nivel deserialización
+        // Aplicamos split para ignorar la parte inicial, "JSON parse error: <nuestro mensaje>"
+        assertEquals(errorMessage?.split(": ")?.last(), "Debe ingresar una fecha")
     }
 
     @Test

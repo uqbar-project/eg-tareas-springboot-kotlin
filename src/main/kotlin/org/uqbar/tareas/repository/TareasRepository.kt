@@ -11,7 +11,7 @@ class TareasRepository {
     val tareas = mutableListOf<Tarea>()
 
     companion object {
-        var ultimoId = 1
+        private var ultimoId = 1
     }
 
     fun allInstances(): List<Tarea> {

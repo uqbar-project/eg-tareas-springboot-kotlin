@@ -42,10 +42,12 @@ class Tarea : Entity() {
     }
 
     @JsonProperty("fecha")
-    fun getFechaAsString() = formatter.format(this.fecha)
+    fun getFechaAsString(): String = formatter.format(this.fecha)
 
     @JsonProperty("fecha")
-    fun asignarFecha(fecha: String) {
+    fun asignarFecha(fecha: String?) {
+        if (fecha === null)
+            throw BusinessException("Debe ingresar una fecha")
         this.fecha = LocalDate.parse(fecha, formatter)
     }
 

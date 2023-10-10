@@ -21,7 +21,10 @@ class TareasService(
    fun buscar(tareaBusqueda: Tarea) = tareasRepository.search(tareaBusqueda)
 
    fun actualizar(id: Int, tareaActualizada: Tarea): Tarea {
-      if (tareaActualizada.id !== null && tareaActualizada.id != id) {
+      if (tareaActualizada.id == null) {
+         throw BusinessException("Debe proveerse el ID de la tarea a actualizar")
+      }
+      if (tareaActualizada.id!! != id) {
          throw BusinessException("Id en URL distinto del id que viene en el body")
       }
       val tarea = tareaPorId(id)
