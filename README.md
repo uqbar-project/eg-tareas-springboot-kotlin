@@ -329,7 +329,7 @@ fun actualizar(@PathVariable id: Int, @RequestBody tareaBody: Tarea): Tarea {
 
 La annotation @PutMapping define la ruta "/tareas/{id}" como método http PUT. Los parámetros que se le inyectan son:
 
-- el identificador o id, dentro de la ruta, puesto entre llaves ({id}). Para el caso de http://localhost:9000/tareas/2, el valor 2 se asigna al parametro id del método actualizar. La anotación @PathVariable indicá que el paramétro id va a estar ligado a un parámetro de la URL.
+- el identificador o id, dentro de la ruta, puesto entre llaves ({id}). Para el caso de http://localhost:9000/tareas/2, el valor 2 se asigna al parámetro id del método actualizar. La anotación @PathVariable indicá que el parámetro id va a estar ligado a un parámetro de la URL.
 - por otra parte, la annotation @RequestBody dentro del parámetro del método actualizar permite recibir un JSON y asignarlo a la variable body.
 
 La implementación del método actualizar requiere transformar el body (JSON) al objeto Tarea. Así como agregamos dos properties para la serialización de una Tarea (fecha y asignadoA), agregamos una property para la deserialización de la fecha pero no para el asignatario, porque hay que buscarlo en el repo (y no queremos hacerlo desde la clase Usuario).
@@ -361,7 +361,7 @@ fun actualizar(id: Int, tareaActualizada: Tarea): Tarea {
 }
 ```
 
-Una vez que se actualiza, se envía el status 200 y la tarea actualizada serializada a JSON. En caso de haber un error de negocio lanzamos una excepción que se convierte a un status 400 (Bad Request) con la informacón del error. Cualquier otra excepción que no es del negocio, es un error de programa, corresponde devolver 500 (internal server error), que es lo que va a devolver Spring Boot por defecto.
+Una vez que se actualiza, se envía el status 200 y la tarea actualizada serializada a JSON. En caso de haber un error de negocio lanzamos una excepción que se convierte a un status 400 (Bad Request) con la información del error. Cualquier otra excepción que no es del negocio, es un error de programa, corresponde devolver 500 (internal server error), que es lo que va a devolver Spring Boot por defecto.
 
 ## Manejo de errores
 
@@ -425,11 +425,11 @@ class Usuario(val nombre: NombreCompleto) : Entity() { /* ... */ }
 
 En principio no es un cambio enorme. Podríamos adaptar nuestra entidad, su repositorio, su service y su controller para manejar este cambio. Bastante refactor de por medio, pero es algo que se puede hacer.
 
-En este ejemplo, alterar Usuario.nombre de `String` a `NombreCompleto` repercute en:
+En este ejemplo, alterar `Usuario.nombre` de `String` a `NombreCompleto` repercute en:
 
 * `Tarea.asignadoA` (Pasa de String a NombreCompleto)
   * Esto incluye cualquier endpoint que reciba una [Tarea] en su Body, ya que necesita traducir el "asignadoA" de la tarea a un nombre. 
-* `TareasService.tareas` (ordena en base a asignatario.nombre)
+* `TareasService.tareas` (ordena basándose en `asignatario.nombre`)
 * `UsuariosRepository.getAsignatario` (busca en base al String "nombre")
   * Afecta a la creación y actualización de tareas
 
@@ -447,21 +447,21 @@ class TareasController(val tareasService: TareasService) {
 }
 ```
 
-Esto tiene de ventaja poder mantener soporte para ambas versiones en simultaneo, eventualmente dando de baja la versión original cuando su uso sea lo suficientemente bajo (o nulo).
+Esto tiene de ventaja poder mantener soporte para ambas versiones en simultáneo, eventualmente dando de baja la versión original cuando su uso sea lo suficientemente bajo (o nulo).
 
-Por otro lado, versionar de esta forma puede volverse costoso de mantener. Ante el más minimo cambio rompedor que haya que introducir, toca crear una rama nueva de endpoints (posiblemente teniendo que migrar o duplicar multiples endpoints "no afectados" por el cambio). En nuestro ejemplo, todos los endpoints no dependientes en el nombre tendrían que ser movidos, y sus tests corregidos.
+Por otro lado, versionar de esta forma puede volverse costoso de mantener. Ante el más mínimo cambio rompedor que haya que introducir, toca crear una rama nueva de endpoints (posiblemente teniendo que migrar o duplicar multiples endpoints "no afectados" por el cambio). En nuestro ejemplo, todos los endpoints no dependientes en el nombre tendrían que ser movidos, y sus tests corregidos.
 
-También está el tema de documentar la API. Hay que transmitir de alguna forma la información a los consumidores de la misma respecto a cual es la diferencia entre solicitar una "Tarea v1" y una "Tarea v2"; peor con recursos sin cambios, como "Usuario v1" y "Usuario v2". Esto puede remediarse ligeramente sincronizando la versión de la aplicación con aquella expuesta por la API (sobre todo si la aplicación utiliza versionado semántico - la API v2 puede ser lanzada junto a una version 2.x.x de la app)
+También está el tema de documentar la API. Hay que transmitir de alguna forma la información a los consumidores de la misma respecto a cuál es la diferencia entre solicitar una "Tarea v1" y una "Tarea v2"; peor si se trata de recursos sin cambios, como "Usuario v1" y "Usuario v2". Esto puede remediarse ligeramente sincronizando la versión de la aplicación con aquella expuesta por la API (sobre todo si la aplicación utiliza versionado semántico - la API v2 puede ser lanzada junto a una version 2.x.x de la app)
 
 ### Soluciones alternativas
 
-Como se menciono, versionar mediante la URL no es el único método. Otras opciones incluyen:
+Como se mencionó, versionar mediante la URL no es el único método. Otras opciones incluyen:
 
 * Versionar mediante query params (`/api/tareas?version=1`)
 * Usando headers personalizados en la request (`Accepts-version: 1.0`)
 * Una combinación de los anteriores (tener en la URL una version mayor para cambios mayores, y query params para variantes menores de un solo endpoint)
 
-Podría dedicarse una clase entera a armado de APIs, particularmente este tema. Pueden encontrar un poco más de información y alternativas en estos enlaces:
+Podría dedicarse una clase entera al armado de APIs, particularmente este tema. Pueden encontrar un poco más de información y alternativas en estos enlaces:
 * [Versioning a REST API - Baeldung](https://www.baeldung.com/rest-versioning)
 * [How to Version a REST API - freeCodeCamp](https://freecodecamp.org/news/how-to-version-a-rest-api/)
 

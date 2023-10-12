@@ -21,7 +21,7 @@ class Tarea : Entity() {
     var asignatario: Usuario? = null
 
     @JsonIgnore
-    var fecha = LocalDate.now()
+    var fecha: LocalDate = LocalDate.now()
 
     fun validar() {
         if (descripcion.isEmpty()) {
