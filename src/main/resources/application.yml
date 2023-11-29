@@ -5,3 +5,5 @@ server:
       enabled: false
     include-message: always
 
+dev-endpoints:
+  enabled: true

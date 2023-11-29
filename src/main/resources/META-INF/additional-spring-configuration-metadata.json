@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "dev-endpoints.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.uqbar.tareas.controller.DevCommandsController",
+      "defaultValue": false,
+      "description": "Controla si los endpoints de desarrollo se activan o no."
+  }
+] }

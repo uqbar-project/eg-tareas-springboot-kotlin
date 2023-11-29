@@ -1,16 +1,16 @@
 package org.uqbar.tareas.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.CrossOrigin
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RestController
 import org.uqbar.tareas.bootstrap.TareasBootstrap
-import org.uqbar.tareas.service.UsuariosService
 
 @RestController
 @CrossOrigin("*")
-class ResetRepositoriesController(
+@ConditionalOnProperty(prefix = "dev-endpoints", name = ["enabled"])
+class DevCommandsController(
    val tareasBootstrap: TareasBootstrap
 ) {
 
