@@ -17,6 +17,7 @@ class TareasBootstrap(
     private lateinit var rodrigo: Usuario
 
     fun crearTareas() {
+        tareasRepository.clearInit()
         val thisYear = LocalDate.now().year
         tareasRepository.apply {
             create("Algo2: migrar ejemplo de Decorator a Kotlin", juan, LocalDate.now(), "Iteración 1", 0)
@@ -36,6 +37,7 @@ class TareasBootstrap(
     }
 
     fun crearUsuarios() {
+        usuariosRepository.clearInit()
         juan = Usuario ("Juan Contardo")
         rodrigo = Usuario ("Rodrigo Grisolia")
 
