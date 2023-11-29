@@ -11,7 +11,7 @@ class TareasRepository {
     val tareas = mutableListOf<Tarea>()
 
     companion object {
-        private var ultimoId = 1
+        private var ultimoId = ID_INICIAL_REPOSITORY
     }
 
     fun allInstances(): List<Tarea> {
@@ -61,6 +61,11 @@ class TareasRepository {
 
     fun clear() {
         tareas.clear()
+    }
+
+    fun clearInit() {
+        clear()
+        ultimoId = ID_INICIAL_REPOSITORY
     }
 
 }

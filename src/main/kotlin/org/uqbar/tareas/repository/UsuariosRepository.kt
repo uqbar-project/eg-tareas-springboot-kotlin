@@ -8,7 +8,7 @@ class UsuariosRepository {
     val usuarios = mutableListOf<Usuario>()
 
     companion object {
-        private var ultimoId = 1
+        private var ultimoId = ID_INICIAL_REPOSITORY
     }
 
     fun allInstances() = usuarios.sortedBy { it.nombre }
@@ -23,5 +23,10 @@ class UsuariosRepository {
 
     fun clear() {
         usuarios.clear()
+    }
+
+    fun clearInit() {
+        clear()
+        ultimoId = ID_INICIAL_REPOSITORY
     }
 }
