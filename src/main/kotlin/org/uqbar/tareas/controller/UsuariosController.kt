@@ -2,7 +2,10 @@ package org.uqbar.tareas.controller
 
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.uqbar.tareas.domain.Usuario
 import org.uqbar.tareas.service.UsuariosService
 
 @RestController
@@ -14,4 +17,6 @@ class UsuariosController(
     @GetMapping("/usuarios")
     fun usuarios() = usuariosService.allInstances()
 
+    @PostMapping("/usuarios")
+    fun crear(@RequestBody usuario: Usuario) = usuariosService.crear(usuario)
 }

@@ -1,6 +1,6 @@
 package org.uqbar.tareas.domain
 
-class Usuario(val nombre: String) : Entity() {
+class Usuario(var nombre: String = "") : Entity() {
 
     val tareasAsignadas: MutableList<Tarea> = mutableListOf()
 

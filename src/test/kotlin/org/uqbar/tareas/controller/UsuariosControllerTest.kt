@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -42,6 +43,21 @@ class UsuariosControllerTest {
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.length()").value(5))
+    }
+
+    @Test
+    fun `se puede crear un usuarie`() {
+        mockMvc
+            .perform(MockMvcRequestBuilders
+                .post("/usuarios")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    { "nombre": "Fernando Dodino" }
+                """.trimIndent())
+            )
+            .andExpect(status().isOk)
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.nombre").value("Fernando Dodino"))
     }
 
 }
