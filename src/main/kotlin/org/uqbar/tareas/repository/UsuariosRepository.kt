@@ -13,9 +13,16 @@ class UsuariosRepository {
 
     fun allInstances() = usuarios.sortedBy { it.nombre }
 
+    fun find(id: Int) = usuarios.find { it.id == id }
+
     fun create(usuario: Usuario): Usuario {
         usuario.id = ultimoId++
         usuarios.add(usuario)
+        return usuario
+    }
+
+    fun delete(usuario: Usuario): Usuario {
+        usuarios.remove(usuario)
         return usuario
     }
 

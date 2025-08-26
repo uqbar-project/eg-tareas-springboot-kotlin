@@ -1,5 +1,6 @@
 package org.uqbar.tareas.controller
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -58,6 +59,29 @@ class UsuariosControllerTest {
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.nombre").value("Fernando Dodino"))
+    }
+
+    @Test
+    fun `se puede eliminar un usuarie`() {
+        val usuarioABorrar = usuariosRepository.create(Usuario("Fernando Dodino"))
+        mockMvc
+            .perform(MockMvcRequestBuilders
+                .delete("/usuarios/${usuarioABorrar.id}")
+            )
+            .andExpect(status().isOk)
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+
+        val usuarioBorrado = usuarioABorrar.id?.let { usuariosRepository.find(it) }
+        assertThat(usuarioBorrado).isNull()
+    }
+
+    @Test
+    fun `si queremos borrar un usuario inexistente tira error`() {
+        mockMvc
+            .perform(MockMvcRequestBuilders
+                .delete("/usuarios/100000")
+            )
+            .andExpect(status().isNotFound)
     }
 
 }
