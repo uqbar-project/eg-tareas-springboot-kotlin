@@ -287,13 +287,11 @@ Veamos los métodos get:
 
 ```kt
 @GetMapping("/tareas")
-@ApiOperation("Devuelve todas las tareas")
 fun tareas(): List<Tarea> {
     return tareasService.tareas()
 }
 
 @GetMapping("/tareas/{id}")
-@ApiOperation("Permite conocer la información de una tarea por identificador")
 fun tareaPorId(@PathVariable id: Int): Tarea {
     return tareasService.tareaPorId(id)
 }
@@ -321,7 +319,6 @@ Ahora veremos el método que permite actualizar una tarea:
 
 ```kt
 @PutMapping("/tareas/{id}")
-@ApiOperation("Permite actualizar la información de una tarea")
 fun actualizar(@PathVariable id: Int, @RequestBody tareaBody: Tarea): Tarea {
     return tareasService.actualizar(id, tareaBody)
 }
