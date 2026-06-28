@@ -248,7 +248,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
             .andReturn().response.contentAsString
 
         val nuevaTareaObject = mapper.readValue(nuevaTareaResponse, Tarea::class.java)
-        val nuevaTarea = tareasRepository.searchById(nuevaTareaObject.id)
+        val nuevaTarea = tareasRepository.searchById(nuevaTareaObject.id!!)
         assertEquals(nuevaTarea!!.descripcion, descripcionNuevaTarea)
     }
 
@@ -326,7 +326,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
         mockMvc.delete("/tareas/${tarea.id}")
             .andExpect { status { isOk() } }
 
-        assertEquals(null, tareasRepository.searchById(tarea.id))
+        assertEquals(null, tareasRepository.searchById(tarea.id!!))
     }
 
     @Test

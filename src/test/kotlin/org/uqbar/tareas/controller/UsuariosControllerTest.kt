@@ -71,7 +71,7 @@ class UsuariosControllerTest {
             .andExpect(status().isOk)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
 
-        val usuarioBorrado = usuariosRepository.find(usuarioABorrar.id)
+        val usuarioBorrado = usuarioABorrar.id?.let { usuariosRepository.find(it) }
         assertThat(usuarioBorrado).isNull()
     }
 

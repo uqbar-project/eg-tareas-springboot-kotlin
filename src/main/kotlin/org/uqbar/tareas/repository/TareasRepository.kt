@@ -9,7 +9,8 @@ import java.util.concurrent.atomic.AtomicInteger
 @Component
 class TareasRepository {
 
-    val tareas = mutableListOf<Tarea>()
+    private val tareas = mutableListOf<Tarea>()
+    private val lock = Any()
 
     // AtomicInteger permite incrementos atómicos sin sincronizar bloques completos.
     // En un escenario multi-thread (varios requests simultáneos) evitamos
@@ -18,8 +19,8 @@ class TareasRepository {
         private val ultimoId = AtomicInteger(ID_INICIAL_REPOSITORY)
     }
 
-    fun allInstances(): List<Tarea> {
-        return tareas
+    fun allInstances(): List<Tarea> = synchronized(lock) {
+        tareas.toList()
     }
 
     fun create(
@@ -41,34 +42,37 @@ class TareasRepository {
         create(tarea)
     }
 
-    fun create(tarea: Tarea): Tarea {
+    fun create(tarea: Tarea): Tarea = synchronized(lock) {
         tarea.id = ultimoId.getAndIncrement()
         tareas.add(tarea)
-        return tarea
+        tarea
     }
 
-    fun searchById(id: Int) = allInstances().find { it.id == id }
-
-    fun search(descripcion: String) = tareas.filter { it.descripcion.uppercase().contains(descripcion.uppercase()) }
-
-    fun update(tarea: Tarea): Tarea {
-        val indexTarea = tareas.indexOf(searchById(tarea.id))
-        tareas.removeAt(indexTarea)
-        tareas.add(indexTarea, tarea)
-        return tarea
+    fun searchById(id: Int) = synchronized(lock) {
+        tareas.find { it.id == id }
     }
 
-    fun delete(tarea: Tarea): Tarea {
+    fun search(descripcion: String) = synchronized(lock) {
+        tareas.filter { it.descripcion.uppercase().contains(descripcion.uppercase()) }
+    }
+
+    fun update(tarea: Tarea): Tarea = synchronized(lock) {
+        val index = tareas.indexOfFirst { it.id == tarea.id }
+        tareas[index] = tarea
+        tarea
+    }
+
+    fun delete(tarea: Tarea) = synchronized(lock) {
         tareas.remove(tarea)
-        return tarea
+        tarea
     }
 
-    fun clear() {
+    fun clear() = synchronized(lock) {
         tareas.clear()
     }
 
-    fun clearInit() {
-        clear()
+    fun clearInit() = synchronized(lock) {
+        tareas.clear()
         ultimoId.set(ID_INICIAL_REPOSITORY)
     }
 

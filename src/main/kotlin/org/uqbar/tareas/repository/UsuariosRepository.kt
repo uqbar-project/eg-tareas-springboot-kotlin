@@ -6,35 +6,42 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class UsuariosRepository {
-    val usuarios = mutableListOf<Usuario>()
+    private val usuarios = mutableListOf<Usuario>()
+    private val lock = Any()
 
     companion object {
         private val ultimoId = AtomicInteger(ID_INICIAL_REPOSITORY)
     }
 
-    fun allInstances() = usuarios.sortedBy { it.nombre }
+    fun allInstances() = synchronized(lock) {
+        usuarios.sortedBy { it.nombre }
+    }
 
-    fun find(id: Int) = usuarios.find { it.id == id }
+    fun find(id: Int) = synchronized(lock) {
+        usuarios.find { it.id == id }
+    }
 
-    fun create(usuario: Usuario): Usuario {
+    fun create(usuario: Usuario): Usuario = synchronized(lock) {
         usuario.id = ultimoId.getAndIncrement()
         usuarios.add(usuario)
-        return usuario
+        usuario
     }
 
-    fun delete(usuario: Usuario): Usuario {
+    fun delete(usuario: Usuario) = synchronized(lock) {
         usuarios.remove(usuario)
-        return usuario
+        usuario
     }
 
-    fun getAsignatario(nombre: String) = usuarios.find { it.nombre.uppercase() == nombre.uppercase() }
+    fun getAsignatario(nombre: String) = synchronized(lock) {
+        usuarios.find { it.nombre.equals(nombre, ignoreCase = true) }
+    }
 
-    fun clear() {
+    fun clear() = synchronized(lock) {
         usuarios.clear()
     }
 
-    fun clearInit() {
-        clear()
+    fun clearInit() = synchronized(lock) {
+        usuarios.clear()
         ultimoId.set(ID_INICIAL_REPOSITORY)
     }
 }

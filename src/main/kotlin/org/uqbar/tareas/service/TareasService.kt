@@ -37,7 +37,7 @@ class TareasService(
     }
 
     fun crear(nuevaTarea: Tarea): Tarea {
-       if (nuevaTarea.id != 0) {
+       if (nuevaTarea.id != null) {
           throw BusinessException("No debe pasar el identificador de la tarea")
        }
       asignar(nuevaTarea)
