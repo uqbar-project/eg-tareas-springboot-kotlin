@@ -1,5 +1,5 @@
 package org.uqbar.tareas.domain
 
 abstract class Entity {
-   var id: Int? = null
+   var id: Int = 0
 }

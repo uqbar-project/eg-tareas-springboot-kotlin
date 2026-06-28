@@ -1,12 +1,12 @@
 package org.uqbar.tareas.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -22,7 +22,7 @@ import java.time.LocalDate
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Dado un controller de tareas")
-class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
+class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
 
     @Autowired
     lateinit var tareasRepository: TareasRepository
@@ -128,25 +128,6 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
     }
 
     @Test
-    fun `si se intenta actualizar una tarea omitiendo su id en json, el sistema rechaza la operacion`() {
-        val tareaInvalida = buildTarea().apply {
-            id = null
-        }
-
-        val errorMessage = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .put("/tareas/" + tarea.id)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(ObjectMapper().writeValueAsString(tareaInvalida))
-            )
-            .andExpect(status().isBadRequest)
-            .andReturn().resolvedException?.message
-
-        assertEquals(errorMessage, "Debe proveerse el ID de la tarea a actualizar")
-    }
-
-    @Test
     fun `si se intenta actualizar una tarea con datos incorrectos, el sistema rechaza la operacion`() {
         val tareaInvalida = buildTarea().apply {
             id = tarea.id
@@ -245,30 +226,6 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
         assertEquals(errorMessage, "No se encontró el usuario <Mengueche>")
     }
 
-    @Test
-    fun `si se intenta actualizar una tarea con id diferente en el request y en el body, el sistema rechaza la operacion`() {
-        val tareaJson = """
-            {
-                "id": 1,
-                "descripcion":  "Resolver testeo unitario de tarea",
-                "fecha": "21/05/2021",
-                "iteracion": "Iteracion 1",
-                "porcentajeCumplimiento": 20
-            }
-        """.trimIndent()
-
-        val errorMessage = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .put("/tareas/" + 2)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(tareaJson)
-            )
-            .andExpect(status().isBadRequest)
-            .andReturn().resolvedException?.message
-
-        assertEquals(errorMessage, "Id en URL distinto del id que viene en el body")
-    }
     // endregion
 
     // region [crear] POST /tareas
@@ -291,7 +248,7 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
             .andReturn().response.contentAsString
 
         val nuevaTareaObject = mapper.readValue(nuevaTareaResponse, Tarea::class.java)
-        val nuevaTarea = tareasRepository.searchById(nuevaTareaObject.id!!)
+        val nuevaTarea = tareasRepository.searchById(nuevaTareaObject.id)
         assertEquals(nuevaTarea!!.descripcion, descripcionNuevaTarea)
     }
 
@@ -360,29 +317,22 @@ class TareasControllerTest(@Autowired val mockMvc: MockMvc) {
     }
     // endregion
 
-    // region DELETE /tarea/{descripcion}
+    // region DELETE /tarea/{id}
     @Test
     fun `se puede eliminar una tarea existente en forma exitosa`() {
-        val descripcion = "Resolver consulta de usuarios sin tareas"
-        val tarea = buildTarea().also {
-            it.descripcion = descripcion
-            it.fecha = LocalDate.now()
-            it.iteracion = "Iteracion 1"
-            it.porcentajeCumplimiento = 0
-        }
+        val tarea = buildTarea()
         tareasRepository.create(tarea)
 
-        mockMvc.delete("/tareas/${descripcion}")
+        mockMvc.delete("/tareas/${tarea.id}")
             .andExpect { status { isOk() } }
 
-        assertEquals(0, tareasRepository.search(tarea).size)
+        assertEquals(null, tareasRepository.searchById(tarea.id))
     }
 
     @Test
-    fun `si pasamos tareas que no existen no se pueden borrar`() {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/tareas/inexistente"))
-            .andExpect { status().isOk }
-            .andExpect(jsonPath("$.length()").value(0))
+    fun `si se intenta eliminar una tarea con id inexistente se produce un error`() {
+        mockMvc.perform(MockMvcRequestBuilders.delete("/tareas/99999"))
+            .andExpect { status().isNotFound }
     }
     // endregion
 

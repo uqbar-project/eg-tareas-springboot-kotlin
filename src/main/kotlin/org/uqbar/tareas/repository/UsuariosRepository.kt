@@ -2,13 +2,14 @@ package org.uqbar.tareas.repository
 
 import org.springframework.stereotype.Component
 import org.uqbar.tareas.domain.Usuario
+import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class UsuariosRepository {
     val usuarios = mutableListOf<Usuario>()
 
     companion object {
-        private var ultimoId = ID_INICIAL_REPOSITORY
+        private val ultimoId = AtomicInteger(ID_INICIAL_REPOSITORY)
     }
 
     fun allInstances() = usuarios.sortedBy { it.nombre }
@@ -16,7 +17,7 @@ class UsuariosRepository {
     fun find(id: Int) = usuarios.find { it.id == id }
 
     fun create(usuario: Usuario): Usuario {
-        usuario.id = ultimoId++
+        usuario.id = ultimoId.getAndIncrement()
         usuarios.add(usuario)
         return usuario
     }
@@ -34,6 +35,6 @@ class UsuariosRepository {
 
     fun clearInit() {
         clear()
-        ultimoId = ID_INICIAL_REPOSITORY
+        ultimoId.set(ID_INICIAL_REPOSITORY)
     }
 }

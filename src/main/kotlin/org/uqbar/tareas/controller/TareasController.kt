@@ -15,16 +15,16 @@ class TareasController(val tareasService: TareasService) {
    fun tareaPorId(@PathVariable id: Int) = tareasService.tareaPorId(id)
 
    @GetMapping("/tareas/search")
-   fun buscar(@RequestParam(name = "descripcion") descripcionTarea: String) = tareasService.buscar(Tarea().apply{descripcion = descripcionTarea})
+   fun buscar(@RequestParam(name = "descripcion") descripcionTarea: String) = tareasService.buscar(descripcionTarea)
 
    @PutMapping("/tareas/{id}")
    fun actualizar(@PathVariable id: Int, @RequestBody tareaBody: Tarea): Tarea {
       return tareasService.actualizar(id, tareaBody)
    }
 
-   @DeleteMapping("/tareas/{descripcion}")
-   fun eliminar(@PathVariable descripcion: String): List<Tarea> {
-      return tareasService.borrar(descripcion)
+   @DeleteMapping("/tareas/{id}")
+   fun eliminar(@PathVariable id: Int): Tarea {
+      return tareasService.borrar(id)
    }
 
    @PostMapping("/tareas")
