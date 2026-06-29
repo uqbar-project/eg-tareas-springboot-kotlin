@@ -1,9 +1,12 @@
 server:
   port: 9000
-  error:
-    whitelabel:
-      enabled: false
-    include-message: always
+
+spring:
+  web:
+    error:
+      whitelabel:
+        enabled: false
+      include-message: always
 
 dev-endpoints:
-  enabled: true
+  enabled: false
