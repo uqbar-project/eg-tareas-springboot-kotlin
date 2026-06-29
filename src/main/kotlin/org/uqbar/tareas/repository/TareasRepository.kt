@@ -3,6 +3,7 @@ package org.uqbar.tareas.repository
 import org.springframework.stereotype.Component
 import org.uqbar.tareas.domain.Tarea
 import org.uqbar.tareas.domain.Usuario
+import org.uqbar.tareas.errors.NotFoundException
 import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -58,6 +59,7 @@ class TareasRepository {
 
     fun update(tarea: Tarea): Tarea = synchronized(lock) {
         val index = tareas.indexOfFirst { it.id == tarea.id }
+        if (index < 0) throw NotFoundException("No se encontró la tarea de id <${tarea.id}>")
         tareas[index] = tarea
         tarea
     }
