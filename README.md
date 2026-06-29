@@ -164,8 +164,9 @@ class TareaDTO {
 Todos esos atributos formarán parte de lo que se expondrá de la Tarea, en los endpoints que lo usen.
 
 ```kt
-fun buscar(@RequestBody tareaBusqueda: Tarea) =
-    tareasService.buscar(tareaBusqueda).map { it.toTareaDTO() }
+@GetMapping("/tareas/search")
+fun buscar(@RequestParam(name = "descripcion") descripcionTarea: String) =
+    tareasService.buscar(descripcionTarea).map { it.toTareaDTO() }
 ```
 
 - además, tenemos que crear un método para convertir la información: de Tarea a TareaDTO.
@@ -335,22 +336,19 @@ La property fecha va a asignarle al atributo fecha la fecha que vino (como Strin
 
 El service a su vez
 
-- verifica que la información sea consistente (parámetro de la URL e información dentro del body)
 - se recupera la información de la tarea del repositorio (que es nuestra _source of truth_)
-- pisamos los valores que tenemos del repo con la información que nos pasaron (incluyendo el asignatario si existe)
-- delegamos en el objeto de dominio la validación
-- delegamos al repositorio actualizar la información
-- y opcionalmente devolvemos la tarea actualizada
+- asigna a la tarea el id de la URL (ignorando el que venga en el body)
+- resuelve el asignatario a partir del nombre si viene informado
+- pisa los valores del repo con los datos nuevos
+- delega en el objeto de dominio la validación
+- delega al repositorio actualizar la información
+- y devuelve la tarea actualizada
 
 ```kt
 fun actualizar(id: Int, tareaActualizada: Tarea): Tarea {
-    if (tareaActualizada.id !== null && tareaActualizada.id !== id) {
-        throw BusinessException("Id en URL distinto del id que viene en el body")
-    }
     val tarea = tareaPorId(id)
-    val nombreAsignatario = tareaActualizada.asignatario?.nombre
-    // Solo llamamos a getAsignatario si el nombre contiene un valor distinto de null
-    tareaActualizada.asignatario = nombreAsignatario?.let { usuariosRepository.getAsignatario(it) }
+    tareaActualizada.id = id
+    asignar(tareaActualizada)
     tarea.actualizar(tareaActualizada)
     tarea.validar()
     tareasRepository.update(tarea)
@@ -469,7 +467,7 @@ Podría dedicarse una clase entera al armado de APIs, particularmente este tema.
 
 ## Testing
 
-En la carpeta src/test/java podrás encontrar los casos de prueba para los controllers. Por ejemplo, para la búsqueda de una tarea puntual tendremos los siguientes escenarios:
+En la carpeta src/test/kotlin podrás encontrar los casos de prueba para los controllers. Por ejemplo, para la búsqueda de una tarea puntual tendremos los siguientes escenarios:
 
 - una búsqueda de una tarea que existe, debe devolver toda la información de la tarea
 - una búsqueda de una tarea que no existe, debe devolver código 404 (not found). Chequear por el mensaje de error específico puede ser contraproducente para hacerlo mantenible, solo lo dejamos con fines didácticos (en una aplicación comercial podría ser mejor no agregar ese assert)
