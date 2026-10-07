@@ -20,13 +20,13 @@ class TareasBootstrap(
         tareasRepository.clearInit()
         val thisYear = LocalDate.now().year
         tareasRepository.apply {
-            create("Algo2: migrar ejemplo de Decorator a Kotlin", juan, LocalDate.now(), "Iteración 1", 0)
+            create("Algo2: migrar ejemplo de Decorator a Kotlin", usuarioActual(juan), LocalDate.now(), "Iteración 1", 0)
             create(
                 "Algo3: Preparar TP de React", null, LocalDate.of(thisYear, 9, 9), "Iteración 1",
                 76
             )
             create(
-                "PHM: Planificar cursada", rodrigo, LocalDate.of(thisYear, 6, 30),
+                "PHM: Planificar cursada", usuarioActual(rodrigo), LocalDate.of(thisYear, 6, 30),
                 "Iteración 1", 22
             )
             create(
@@ -54,5 +54,12 @@ class TareasBootstrap(
         this.crearUsuarios()
         this.crearTareas()
     }
+
+    /**
+     * Devuelve el usuario del repo si existe y si no lo recrea, para que
+     * resetear solo las tareas nunca deje asignatarios descolgados.
+     */
+    private fun usuarioActual(respaldo: Usuario): Usuario =
+        usuariosRepository.getAsignatario(respaldo.nombre) ?: usuariosRepository.create(Usuario(respaldo.nombre))
 
 }

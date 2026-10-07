@@ -2,7 +2,7 @@ package org.uqbar.tareas.controller
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.CrossOrigin
-import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import org.uqbar.tareas.bootstrap.TareasBootstrap
 
@@ -13,10 +13,10 @@ class DevCommandsController(
    val tareasBootstrap: TareasBootstrap
 ) {
 
-    @PutMapping("/reset/all")
+    @PostMapping("/reset/all")
     fun resetAll() = tareasBootstrap.afterPropertiesSet()
 
-    @PutMapping("/reset/tareas")
+    @PostMapping("/reset/tareas")
     fun resetTareas() = tareasBootstrap.crearTareas()
 
 }
