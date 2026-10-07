@@ -64,8 +64,12 @@ class TareasRepository {
         tarea
     }
 
+    /**
+     * Elimina por id y no por referencia: las entidades no son data class
+     * y dos instancias con el mismo id se consideran la misma.
+     */
     fun delete(tarea: Tarea) = synchronized(lock) {
-        tareas.remove(tarea)
+        tareas.removeIf { it.id == tarea.id }
         tarea
     }
 

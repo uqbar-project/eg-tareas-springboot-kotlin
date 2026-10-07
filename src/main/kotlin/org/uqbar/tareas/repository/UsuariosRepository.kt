@@ -27,8 +27,11 @@ class UsuariosRepository {
         usuario
     }
 
+    /**
+     * Elimina por id y no por referencia, igual que en TareasRepository.
+     */
     fun delete(usuario: Usuario) = synchronized(lock) {
-        usuarios.remove(usuario)
+        usuarios.removeIf { it.id == usuario.id }
         usuario
     }
 

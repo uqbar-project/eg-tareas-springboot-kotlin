@@ -36,14 +36,16 @@ class TareasService(
        return tarea
     }
 
+    /**
+     * Crea la tarea y la agrega a la lista del asignatario
+     * para mantener ambos lados de la relación.
+     */
     fun crear(nuevaTarea: Tarea): Tarea {
-       if (nuevaTarea.id != null) {
-          throw BusinessException("No debe pasar el identificador de la tarea")
-       }
+        if (nuevaTarea.id != null) {
+           throw BusinessException("No debe pasar el identificador de la tarea")
+        }
       asignar(nuevaTarea)
       tareasRepository.create(nuevaTarea)
-      // Se agrega a la lista del asignatario para mantener ambos lados
-      // de la relación.
       nuevaTarea.asignatario?.let { nuevaTarea.asignarA(it) }
       return nuevaTarea
    }

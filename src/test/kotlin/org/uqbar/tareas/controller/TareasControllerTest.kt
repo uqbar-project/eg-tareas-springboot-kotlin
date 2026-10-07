@@ -127,6 +127,10 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
             .andExpect(jsonPath("$.porcentajeCumplimiento").value("70"))
     }
 
+    /**
+     * Con @Valid el 400 lo genera Spring (MethodArgumentNotValidException)
+     * y el RestExceptionHandler devuelve los mensajes en el body.
+     */
     @Test
     fun `si se intenta actualizar una tarea con datos incorrectos, el sistema rechaza la operacion`() {
         val tareaInvalida = buildTarea().apply {
@@ -134,8 +138,6 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
             descripcion = ""
         }
 
-        // Con @Valid el 400 lo genera Spring (MethodArgumentNotValidException)
-        // y el RestExceptionHandler devuelve los mensajes en el body.
         mockMvc
             .perform(
                 MockMvcRequestBuilders
@@ -175,6 +177,9 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
         assertEquals(errorMessage?.split(": ")?.last(), "Debe ingresar una fecha")
     }
 
+    /**
+     * Mismo caso que fecha null: error de usuario a nivel deserialización.
+     */
     @Test
     fun `si se intenta actualizar una tarea con formato de fecha invalido, el sistema rechaza la operacion`() {
         val tareaFechaInvalida = """
@@ -198,7 +203,6 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
             .andExpect(status().isBadRequest)
             .andReturn().resolvedException?.message
 
-        // Mismo caso que fecha null: error de usuario a nivel deserialización.
         assertEquals(errorMessage?.split(": ")?.last(), "Formato de fecha inválido, esperado dd/MM/yyyy")
     }
 
@@ -310,11 +314,13 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
         )
     }
 
+    /**
+     * Se usa JSON crudo a propósito, porque buildTarea() asigna
+     * la tarea al usuario y contaminaría la lista con una instancia transitoria.
+     */
     @Test
     fun `actualizar con datos invalidos no altera la asignacion existente`() {
         val cantidadInicial = usuario.tareasAsignadas.size
-        // Nota: se usa JSON crudo a propósito, porque buildTarea() asigna
-        // la tarea al usuario y contaminaría la lista con una instancia transitoria.
         val tareaInvalida = """
             {
                 "descripcion":  "",
@@ -355,12 +361,14 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
             .andExpect(content().string("Debe ingresar descripcion"))
     }
 
+    /**
+     * Descripción válida a propósito: con @Valid, una descripción vacía
+     * sería rechazada antes de llegar al chequeo del id en el service.
+     */
     @Test
     fun `si se intenta crear una tarea pasando un id, el sistema rechaza la operacion`() {
         val tareaInvalida = buildTarea().apply {
             id = 100
-            // Descripción válida a propósito: con @Valid, una descripción vacía
-            // sería rechazada antes de llegar al chequeo del id en el service.
             descripcion = "Tarea con id pasado por parámetro"
         }
 

@@ -14,11 +14,14 @@ class UsuariosService(
 
     fun allInstances() = usuariosRepository.allInstances()
     fun crear(usuario: Usuario) = usuariosRepository.create(usuario)
+    /**
+     * Elimina al usuario desasignando antes sus tareas, que sobreviven
+     * con asignatario null. Se recorre el repo y no la lista del usuario
+     * para cubrir también tareas que no estén en tareasAsignadas.
+     */
     fun eliminar(usuarioId: Int): Usuario {
         val usuario = usuariosRepository.find(usuarioId)
             ?: throw NotFoundException("Usuario no encontrado")
-        // Desasignamos sus tareas: se recorre el repo (no la lista del usuario)
-        // para cubrir también tareas que no estén en tareasAsignadas.
         tareasRepository.allInstances()
             .filter { it.asignatario?.id == usuarioId }
             .forEach { it.desasignar() }
