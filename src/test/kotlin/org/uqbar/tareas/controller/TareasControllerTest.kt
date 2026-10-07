@@ -176,6 +176,33 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
     }
 
     @Test
+    fun `si se intenta actualizar una tarea con formato de fecha invalido, el sistema rechaza la operacion`() {
+        val tareaFechaInvalida = """
+            {
+                "id": ${tarea.id},
+                "descripcion":  "Resolver testeo unitario de tarea",
+                "fecha": "no-es-fecha",
+                "iteracion": "Iteracion 1",
+                "asignadoA": "Guillermo Bianchi",
+                "porcentajeCumplimiento": 40
+            }
+        """.trimIndent()
+
+        val errorMessage = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/" + tarea.id)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaFechaInvalida)
+            )
+            .andExpect(status().isBadRequest)
+            .andReturn().resolvedException?.message
+
+        // Mismo caso que fecha null: error de usuario a nivel deserialización.
+        assertEquals(errorMessage?.split(": ")?.last(), "Formato de fecha inválido, esperado dd/MM/yyyy")
+    }
+
+    @Test
     fun `se puede desasignar omitiendo el asignatario, esto actualiza la tarea correctamente`() {
         val tareaSinAsignatario = """
             {

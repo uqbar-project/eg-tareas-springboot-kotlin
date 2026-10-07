@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.uqbar.tareas.errors.BusinessException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 class Tarea : Entity() {
     companion object {
@@ -48,7 +49,11 @@ class Tarea : Entity() {
     fun asignarFecha(fecha: String?) {
         if (fecha === null)
             throw BusinessException("Debe ingresar una fecha")
-        this.fecha = LocalDate.parse(fecha, formatter)
+        try {
+            this.fecha = LocalDate.parse(fecha, formatter)
+        } catch (e: DateTimeParseException) {
+            throw BusinessException("Formato de fecha inválido, esperado dd/MM/yyyy")
+        }
     }
 
     fun asignarA(usuario: Usuario) {
