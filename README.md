@@ -141,6 +141,10 @@ La declaratividad nos permite expresar "esta propiedad no la tomes en cuenta" o 
 
 Otra desventaja es que las anotaciones sirven para todos los casos, no es posible que un controller devuelva en ciertos casos el asignatario y en otros no, **siempre tenemos que devolver la misma información**.
 
+### Mantenimiento de la relación bidireccional
+
+Como la relación es bidireccional, cada cambio debe reflejarse en ambos lados: `Tarea.asignarA()` quita la tarea de la lista del asignatario anterior antes de agregarla al nuevo, y `Tarea.desasignar()` la quita y deja el asignatario en null. El resto de las operaciones delegan en estos métodos: actualizar reasigna o desasigna, borrar una tarea la desasigna, crear la agrega a la lista del asignatario y eliminar un usuario desasigna sus tareas (que sobreviven sin asignatario).
+
 ## Otras alternativas a la hora de serializar
 
 Además de las anotaciones que provee Jackson, contamos con otras variantes:
@@ -320,7 +324,7 @@ Ahora veremos el método que permite actualizar una tarea:
 
 ```kt
 @PutMapping("/tareas/{id}")
-fun actualizar(@PathVariable id: Int, @RequestBody tareaBody: Tarea): Tarea {
+fun actualizar(@PathVariable id: Int, @Valid @RequestBody tareaBody: Tarea): Tarea {
     return tareasService.actualizar(id, tareaBody)
 }
 ```
@@ -328,19 +332,18 @@ fun actualizar(@PathVariable id: Int, @RequestBody tareaBody: Tarea): Tarea {
 La annotation @PutMapping define la ruta "/tareas/{id}" como método http PUT. Los parámetros que se le inyectan son:
 
 - el identificador o id, dentro de la ruta, puesto entre llaves ({id}). Para el caso de http://localhost:9000/tareas/2, el valor 2 se asigna al parámetro id del método actualizar. La anotación @PathVariable indicá que el parámetro id va a estar ligado a un parámetro de la URL.
-- por otra parte, la annotation @RequestBody dentro del parámetro del método actualizar permite recibir un JSON y asignarlo a la variable body.
+- por otra parte, la annotation @RequestBody dentro del parámetro del método actualizar permite recibir un JSON y asignarlo a la variable body. El @Valid hace que Spring valide el body (Bean Validation) antes de entrar al método: si la descripción está vacía o el porcentaje está fuera de 0-100, devuelve 400 sin llegar al service.
 
 La implementación del método actualizar requiere transformar el body (JSON) al objeto Tarea. Así como agregamos dos properties para la serialización de una Tarea (fecha y asignadoA), agregamos una property para la deserialización de la fecha pero no para el asignatario, porque hay que buscarlo en el repo (y no queremos hacerlo desde la clase Usuario).
 
-La property fecha va a asignarle al atributo fecha la fecha que vino (como String) convertida a LocalDate.
+La property fecha va a asignarle al atributo fecha la fecha que vino (como String) convertida a LocalDate. Si viene null o con un formato distinto de dd/MM/yyyy, se lanza una excepción de negocio que se traduce a 400.
 
 El service a su vez
 
 - se recupera la información de la tarea del repositorio (que es nuestra _source of truth_)
 - asigna a la tarea el id de la URL (ignorando el que venga en el body)
 - resuelve el asignatario a partir del nombre si viene informado
-- pisa los valores del repo con los datos nuevos
-- delega en el objeto de dominio la validación
+- pisa los valores del repo con los datos nuevos (delegando en `asignarA`/`desasignar` para mantener la relación bidireccional)
 - delega al repositorio actualizar la información
 - y devuelve la tarea actualizada
 
@@ -350,13 +353,16 @@ fun actualizar(id: Int, tareaActualizada: Tarea): Tarea {
     tareaActualizada.id = id
     asignar(tareaActualizada)
     tarea.actualizar(tareaActualizada)
-    tarea.validar()
     tareasRepository.update(tarea)
     return tarea
 }
 ```
 
 Una vez que se actualiza, se envía el status 200 y la tarea actualizada serializada a JSON. En caso de haber un error de negocio lanzamos una excepción que se convierte a un status 400 (Bad Request) con la información del error. Cualquier otra excepción que no es del negocio, es un error de programa, corresponde devolver 500 (internal server error), que es lo que va a devolver Spring Boot por defecto.
+
+### Endpoints de desarrollo
+
+Para restaurar los datos de ejemplo sin reiniciar la aplicación existen `POST /reset/all` (usuarios y tareas) y `POST /reset/tareas` (solo tareas, recuperando los usuarios que falten). Están apagados por defecto (`dev-endpoints.enabled: false` en el `application.yml`) y solo tienen sentido en un entorno de prueba.
 
 ## Manejo de errores
 
@@ -376,6 +382,8 @@ class NotFoundException(msg: String) : RuntimeException(msg) {
 ```
 
 de la misma manera que se modela una excepción de negocio (BusinessException) como BadRequest.
+
+Además, los datos de entrada se validan con Bean Validation: la descripción lleva `@NotBlank`, el porcentaje `@Min(0)`/`@Max(100)` y el nombre de usuario `@NotBlank`, y los controllers marcan el body con `@Valid`. Si algo falla, Spring ni siquiera entra al método y un `RestExceptionHandler` mínimo devuelve los mensajes con 400.
 
 ### Variante con exception handlers
 
