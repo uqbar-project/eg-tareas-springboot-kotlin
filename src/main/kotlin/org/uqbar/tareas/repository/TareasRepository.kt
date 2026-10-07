@@ -32,7 +32,7 @@ class TareasRepository {
         cumplimiento: Int
     ) {
         val tarea = Tarea().apply {
-            if (responsable !== null) {
+            if (responsable != null) {
                 asignarA(responsable)
             }
             descripcion = unaDescripcion

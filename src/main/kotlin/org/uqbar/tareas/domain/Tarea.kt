@@ -48,7 +48,7 @@ class Tarea : Entity() {
 
     @JsonProperty("fecha")
     fun asignarFecha(fecha: String?) {
-        if (fecha === null)
+        if (fecha == null)
             throw BusinessException("Debe ingresar una fecha")
         try {
             this.fecha = LocalDate.parse(fecha, formatter)
@@ -58,7 +58,7 @@ class Tarea : Entity() {
     }
 
     fun asignarA(usuario: Usuario) {
-        if (asignatario !== usuario) {
+        if (asignatario != usuario) {
             asignatario?.quitarTarea(this)
             asignatario = usuario
         }
