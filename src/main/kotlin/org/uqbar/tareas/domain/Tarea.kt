@@ -52,16 +52,25 @@ class Tarea : Entity() {
     }
 
     fun asignarA(usuario: Usuario) {
-        this.asignatario = usuario
+        if (asignatario !== usuario) {
+            asignatario?.quitarTarea(this)
+            asignatario = usuario
+        }
         usuario.asignarTarea(this)
+    }
+
+    fun desasignar() {
+        asignatario?.quitarTarea(this)
+        asignatario = null
     }
 
     fun actualizar(otraTarea: Tarea) {
         descripcion = otraTarea.descripcion
         iteracion = otraTarea.iteracion
         porcentajeCumplimiento = otraTarea.porcentajeCumplimiento
-        asignatario = otraTarea.asignatario
         fecha = otraTarea.fecha
+        val nuevoAsignatario = otraTarea.asignatario
+        if (nuevoAsignatario == null) desasignar() else asignarA(nuevoAsignatario)
     }
 
 }

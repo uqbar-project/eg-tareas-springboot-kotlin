@@ -253,6 +253,65 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
     }
 
     @Test
+    fun `crear una tarea con asignatario lo agrega a su lista`() {
+        val cantidadInicial = usuario.tareasAsignadas.size
+        val descripcionNuevaTarea = "Tarea nueva asignada a Juan"
+        val cuerpo = """
+            {
+                "descripcion":  "$descripcionNuevaTarea",
+                "fecha": "21/05/2021",
+                "iteracion": "Iteracion 1",
+                "asignadoA": "${usuario.nombre}",
+                "porcentajeCumplimiento": 10
+            }
+        """.trimIndent()
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/tareas")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(cuerpo)
+            )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.asignadoA").value(usuario.nombre))
+
+        assertEquals(cantidadInicial + 1, usuario.tareasAsignadas.size)
+        assertEquals(
+            descripcionNuevaTarea,
+            usuario.tareasAsignadas.find { it.descripcion == descripcionNuevaTarea }?.descripcion
+        )
+    }
+
+    @Test
+    fun `actualizar con datos invalidos no altera la asignacion existente`() {
+        val cantidadInicial = usuario.tareasAsignadas.size
+        // Nota: se usa JSON crudo a propósito, porque buildTarea() asigna
+        // la tarea al usuario y contaminaría la lista con una instancia transitoria.
+        val tareaInvalida = """
+            {
+                "descripcion":  "",
+                "fecha": "21/05/2021",
+                "iteracion": "Iteracion 1",
+                "asignadoA": "${usuario.nombre}",
+                "porcentajeCumplimiento": 40
+            }
+        """.trimIndent()
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/" + tarea.id)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaInvalida)
+            )
+            .andExpect(status().isBadRequest)
+
+        assertEquals(tarea.id, usuario.tareasAsignadas.find { it.id == tarea.id }?.id)
+        assertEquals(cantidadInicial, usuario.tareasAsignadas.size)
+    }
+
+    @Test
     fun `si se intenta crear una tarea con datos incorrectos, el sistema rechaza la operacion`() {
         val tareaInvalida = buildTarea().apply {
             descripcion = ""
@@ -315,6 +374,60 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
 
         assertEquals(errorMessage, "No se encontró el usuario <Mengueche>")
     }
+
+    @Test
+    fun `reasignar una tarea a otro usuario actualiza ambas listas`() {
+        val rodrigo = usuariosRepository.create(Usuario("Rodrigo Grisolia"))
+        val tareaReasignada = """
+            {
+                "descripcion":  "${tarea.descripcion}",
+                "fecha": "21/05/2021",
+                "iteracion": "Iteracion 1",
+                "asignadoA": "Rodrigo Grisolia",
+                "porcentajeCumplimiento": 40
+            }
+        """.trimIndent()
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/${tarea.id}")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaReasignada)
+            )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.asignadoA").value("Rodrigo Grisolia"))
+
+        assertEquals(null, usuario.tareasAsignadas.find { it.id == tarea.id })
+        assertEquals(tarea.id, rodrigo.tareasAsignadas.find { it.id == tarea.id }?.id)
+    }
+
+    @Test
+    fun `reasignar una tarea al mismo usuario no la duplica en su lista`() {
+        val cantidadInicial = usuario.tareasAsignadas.size
+        val tareaReasignada = """
+            {
+                "descripcion":  "${tarea.descripcion}",
+                "fecha": "21/05/2021",
+                "iteracion": "Iteracion 1",
+                "asignadoA": "${usuario.nombre}",
+                "porcentajeCumplimiento": 40
+            }
+        """.trimIndent()
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/${tarea.id}")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaReasignada)
+            )
+            .andExpect(status().isOk)
+
+        assertEquals(cantidadInicial, usuario.tareasAsignadas.size)
+        assertEquals(1, usuario.tareasAsignadas.filter { it.id == tarea.id }.size)
+    }
+
     // endregion
 
     // region DELETE /tarea/{id}
@@ -327,6 +440,17 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
             .andExpect { status { isOk() } }
 
         assertEquals(null, tareasRepository.searchById(tarea.id!!))
+    }
+
+    @Test
+    fun `eliminar una tarea la quita de la lista del asignatario`() {
+        val cantidadInicial = usuario.tareasAsignadas.size
+
+        mockMvc.delete("/tareas/${tarea.id}")
+            .andExpect { status { isOk() } }
+
+        assertEquals(cantidadInicial - 1, usuario.tareasAsignadas.size)
+        assertEquals(null, usuario.tareasAsignadas.find { it.id == tarea.id })
     }
 
     @Test

@@ -11,8 +11,11 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.uqbar.tareas.domain.Tarea
 import org.uqbar.tareas.domain.Usuario
+import org.uqbar.tareas.repository.TareasRepository
 import org.uqbar.tareas.repository.UsuariosRepository
+import java.time.LocalDate
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -25,8 +28,12 @@ class UsuariosControllerTest {
     @Autowired
     lateinit var usuariosRepository: UsuariosRepository
 
+    @Autowired
+    lateinit var tareasRepository: TareasRepository
+
     @BeforeEach
     fun init() {
+        tareasRepository.clear()
         usuariosRepository.apply {
             clear()
             create(Usuario("Fernando Dodino"))
@@ -82,6 +89,27 @@ class UsuariosControllerTest {
                 .delete("/usuarios/100000")
             )
             .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `eliminar un usuario desasigna sus tareas sin borrarlas`() {
+        val usuarioConTareas = usuariosRepository.create(Usuario("Alguien Con Tareas"))
+        val tareaAsignada = tareasRepository.create(Tarea().apply {
+            descripcion = "Tarea asignada al usuario a borrar"
+            asignarA(usuarioConTareas)
+            fecha = LocalDate.now()
+            iteracion = "Iteración 1"
+        })
+
+        mockMvc
+            .perform(MockMvcRequestBuilders
+                .delete("/usuarios/${usuarioConTareas.id}")
+            )
+            .andExpect(status().isOk)
+
+        val tareaPostBorrado = tareasRepository.searchById(tareaAsignada.id!!)
+        assertThat(tareaPostBorrado).isNotNull()
+        assertThat(tareaPostBorrado!!.asignatario).isNull()
     }
 
 }
