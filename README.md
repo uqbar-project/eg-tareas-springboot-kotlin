@@ -1,6 +1,6 @@
 # Spring Boot - Tareas pendientes de un equipo de Desarrollo
 
-[![build](https://github.com/uqbar-project/eg-tareas-springboot-kotlin/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/uqbar-project/eg-tareas-springboot/actions/workflows/build.yml) [![codecov](https://codecov.io/gh/uqbar-project/eg-tareas-springboot-kotlin/branch/master/graph/badge.svg)](https://codecov.io/gh/uqbar-project/eg-tareas-springboot-kotlin)
+[![build](https://github.com/uqbar-project/eg-tareas-springboot-kotlin/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/uqbar-project/eg-tareas-springboot/actions/workflows/build.yml) [![codecov](https://codecov.io/gh/uqbar-project/eg-tareas-springboot-kotlin/branch/main/graph/badge.svg)](https://codecov.io/gh/uqbar-project/eg-tareas-springboot-kotlin)
 
 ## Dominio
 
