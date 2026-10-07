@@ -63,6 +63,29 @@ tasks.jacocoTestReport {
     }
 }
 
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.test)
+    classDirectories.setFrom(
+        classDirectories.files.map { dir ->
+            fileTree(dir).matching {
+                exclude("**/config/**", "**/entity/**", "**/*Application*.*", "**/ServletInitializer.*")
+            }
+        }
+    )
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                minimum = "0.90".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
+}
+
 tasks.register("runOnGitHub") {
     dependsOn("jacocoTestReport")
     group = "custom"

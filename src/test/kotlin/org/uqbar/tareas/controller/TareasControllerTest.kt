@@ -24,11 +24,18 @@ import java.time.LocalDate
 @DisplayName("Dado un controller de tareas")
 class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
 
+    companion object {
+        const val ID_INEXISTENTE = 99999
+    }
+
     @Autowired
     lateinit var tareasRepository: TareasRepository
 
     @Autowired
     lateinit var usuariosRepository: UsuariosRepository
+
+    @Autowired
+    lateinit var objectMapper: ObjectMapper
 
     lateinit var usuario: Usuario
     lateinit var tarea: Tarea
@@ -103,8 +110,18 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
     @Test
     fun `si se pide una tarea con un id que no existe se produce un error`() {
         mockMvc
-            .perform(MockMvcRequestBuilders.get("/tareas/20000"))
+            .perform(MockMvcRequestBuilders.get("/tareas/$ID_INEXISTENTE"))
             .andExpect(status().isNotFound)
+    }
+
+    /**
+     * Un id no numérico no llega al service: Spring lo rechaza con 400.
+     */
+    @Test
+    fun `si se pide una tarea con un id no numerico se produce un error de cliente`() {
+        mockMvc
+            .perform(MockMvcRequestBuilders.get("/tareas/abc"))
+            .andExpect(status().isBadRequest)
     }
     // endregion
 
@@ -120,7 +137,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
                 MockMvcRequestBuilders
                     .put("/tareas/" + tarea.id)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(ObjectMapper().writeValueAsString(tareaValida))
+                    .content(objectMapper.writeValueAsString(tareaValida))
             )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/json"))
@@ -143,7 +160,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
                 MockMvcRequestBuilders
                     .put("/tareas/" + tarea.id)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(ObjectMapper().writeValueAsString(tareaInvalida))
+                    .content(objectMapper.writeValueAsString(tareaInvalida))
             )
             .andExpect(status().isBadRequest)
             .andExpect(content().string("Debe ingresar descripcion"))
@@ -263,7 +280,6 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
     @Test
     fun `crear una tarea a un valor valido actualiza correctamente`() {
         val descripcionNuevaTarea = "Implementar un servicio REST para crear una tarea"
-        val mapper = ObjectMapper()
         val tareaValida = buildTarea().apply {
             descripcion = descripcionNuevaTarea
         }
@@ -272,13 +288,13 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
                 MockMvcRequestBuilders
                     .post("/tareas")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(tareaValida))
+                    .content(objectMapper.writeValueAsString(tareaValida))
             )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/json"))
             .andReturn().response.contentAsString
 
-        val nuevaTareaObject = mapper.readValue(nuevaTareaResponse, Tarea::class.java)
+        val nuevaTareaObject = objectMapper.readValue(nuevaTareaResponse, Tarea::class.java)
         val nuevaTarea = tareasRepository.searchById(nuevaTareaObject.id!!)
         assertEquals(nuevaTarea!!.descripcion, descripcionNuevaTarea)
     }
@@ -355,7 +371,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
                 MockMvcRequestBuilders
                     .post("/tareas")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(ObjectMapper().writeValueAsString(tareaInvalida))
+                    .content(objectMapper.writeValueAsString(tareaInvalida))
             )
             .andExpect(status().isBadRequest)
             .andExpect(content().string("Debe ingresar descripcion"))
@@ -377,7 +393,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
                 MockMvcRequestBuilders
                     .post("/tareas")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(ObjectMapper().writeValueAsString(tareaInvalida))
+                    .content(objectMapper.writeValueAsString(tareaInvalida))
             )
             .andExpect(status().isBadRequest)
             .andReturn().resolvedException?.message
@@ -535,7 +551,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
 
     @Test
     fun `si se intenta eliminar una tarea con id inexistente se produce un error`() {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/tareas/99999"))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/tareas/$ID_INEXISTENTE"))
             .andExpect { status().isNotFound }
     }
     // endregion

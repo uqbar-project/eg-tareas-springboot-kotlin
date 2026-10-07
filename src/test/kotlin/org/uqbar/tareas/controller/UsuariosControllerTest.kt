@@ -96,11 +96,15 @@ class UsuariosControllerTest {
         assertThat(usuarioBorrado).isNull()
     }
 
+    companion object {
+        const val ID_INEXISTENTE = 100000
+    }
+
     @Test
     fun `si queremos borrar un usuario inexistente tira error`() {
         mockMvc
             .perform(MockMvcRequestBuilders
-                .delete("/usuarios/100000")
+                .delete("/usuarios/$ID_INEXISTENTE")
             )
             .andExpect(status().isNotFound)
     }
