@@ -2,6 +2,9 @@ package org.uqbar.tareas.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
 import org.uqbar.tareas.errors.BusinessException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -14,8 +17,12 @@ class Tarea : Entity() {
         private val formatter = DateTimeFormatter.ofPattern(DATE_PATTERN)
     }
 
+    @field:NotBlank(message = "Debe ingresar descripcion")
     var descripcion = ""
     var iteracion = ""
+
+    @field:Min(value = 0, message = "Porcentaje de cumplimiento debe estar entre 0 y 100")
+    @field:Max(value = 100, message = "Porcentaje de cumplimiento debe estar entre 0 y 100")
     var porcentajeCumplimiento = 0
 
     @JsonIgnore
@@ -23,12 +30,6 @@ class Tarea : Entity() {
 
     @JsonIgnore
     var fecha: LocalDate = LocalDate.now()
-
-    fun validar() {
-        if (descripcion.isEmpty()) {
-            throw BusinessException("Debe ingresar descripcion")
-        }
-    }
 
     fun estaCumplida() = porcentajeCumplimiento == TAREA_COMPLETA
 

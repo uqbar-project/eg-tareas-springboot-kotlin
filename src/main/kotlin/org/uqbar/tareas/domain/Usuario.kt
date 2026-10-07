@@ -1,6 +1,8 @@
 package org.uqbar.tareas.domain
 
-class Usuario(var nombre: String = "") : Entity() {
+import jakarta.validation.constraints.NotBlank
+
+class Usuario(@field:NotBlank(message = "Debe ingresar nombre") var nombre: String = "") : Entity() {
 
     val tareasAsignadas: MutableList<Tarea> = mutableListOf()
 

@@ -24,11 +24,7 @@ class TareasService(
        val tarea = tareaPorId(id)
        tareaActualizada.id = id
        asignar(tareaActualizada)
-       // Se valida lo entrante ANTES de mutar la tarea guardada y las listas,
-       // para no dejar la relación en un estado inconsistente si falla.
-       tareaActualizada.validar()
        tarea.actualizar(tareaActualizada)
-       tarea.validar()
        tareasRepository.update(tarea)
        return tarea
     }
@@ -45,10 +41,9 @@ class TareasService(
           throw BusinessException("No debe pasar el identificador de la tarea")
        }
       asignar(nuevaTarea)
-      nuevaTarea.validar()
       tareasRepository.create(nuevaTarea)
       // Se agrega a la lista del asignatario para mantener ambos lados
-      // de la relación (solo después de validar y crear, para no contaminar).
+      // de la relación.
       nuevaTarea.asignatario?.let { nuevaTarea.asignarA(it) }
       return nuevaTarea
    }

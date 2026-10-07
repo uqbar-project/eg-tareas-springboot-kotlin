@@ -134,7 +134,9 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
             descripcion = ""
         }
 
-        val errorMessage = mockMvc
+        // Con @Valid el 400 lo genera Spring (MethodArgumentNotValidException)
+        // y el RestExceptionHandler devuelve los mensajes en el body.
+        mockMvc
             .perform(
                 MockMvcRequestBuilders
                     .put("/tareas/" + tarea.id)
@@ -142,9 +144,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
                     .content(ObjectMapper().writeValueAsString(tareaInvalida))
             )
             .andExpect(status().isBadRequest)
-            .andReturn().resolvedException?.message
-
-        assertEquals(errorMessage, "Debe ingresar descripcion")
+            .andExpect(content().string("Debe ingresar descripcion"))
     }
 
     @Test
@@ -344,7 +344,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
             descripcion = ""
         }
 
-        val errorMessage = mockMvc
+        mockMvc
             .perform(
                 MockMvcRequestBuilders
                     .post("/tareas")
@@ -352,16 +352,16 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
                     .content(ObjectMapper().writeValueAsString(tareaInvalida))
             )
             .andExpect(status().isBadRequest)
-            .andReturn().resolvedException?.message
-
-        assertEquals(errorMessage, "Debe ingresar descripcion")
+            .andExpect(content().string("Debe ingresar descripcion"))
     }
 
     @Test
     fun `si se intenta crear una tarea pasando un id, el sistema rechaza la operacion`() {
         val tareaInvalida = buildTarea().apply {
             id = 100
-            descripcion = ""
+            // Descripción válida a propósito: con @Valid, una descripción vacía
+            // sería rechazada antes de llegar al chequeo del id en el service.
+            descripcion = "Tarea con id pasado por parámetro"
         }
 
         val errorMessage = mockMvc
@@ -453,6 +453,51 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
 
         assertEquals(cantidadInicial, usuario.tareasAsignadas.size)
         assertEquals(1, usuario.tareasAsignadas.filter { it.id == tarea.id }.size)
+    }
+
+    @Test
+    fun `si se intenta actualizar una tarea con porcentaje fuera de rango, el sistema rechaza la operacion`() {
+        val tareaInvalida = """
+            {
+                "descripcion":  "${tarea.descripcion}",
+                "fecha": "21/05/2021",
+                "iteracion": "Iteracion 1",
+                "asignadoA": "${usuario.nombre}",
+                "porcentajeCumplimiento": 150
+            }
+        """.trimIndent()
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/tareas/" + tarea.id)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaInvalida)
+            )
+            .andExpect(status().isBadRequest)
+            .andExpect(content().string("Porcentaje de cumplimiento debe estar entre 0 y 100"))
+    }
+
+    @Test
+    fun `si se intenta crear una tarea con porcentaje negativo, el sistema rechaza la operacion`() {
+        val tareaInvalida = """
+            {
+                "descripcion":  "Tarea con porcentaje negativo",
+                "fecha": "21/05/2021",
+                "iteracion": "Iteracion 1",
+                "porcentajeCumplimiento": -5
+            }
+        """.trimIndent()
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/tareas")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(tareaInvalida)
+            )
+            .andExpect(status().isBadRequest)
+            .andExpect(content().string("Porcentaje de cumplimiento debe estar entre 0 y 100"))
     }
 
     // endregion

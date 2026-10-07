@@ -69,6 +69,20 @@ class UsuariosControllerTest {
     }
 
     @Test
+    fun `si se intenta crear un usuarie sin nombre, el sistema rechaza la operacion`() {
+        mockMvc
+            .perform(MockMvcRequestBuilders
+                .post("/usuarios")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    { "nombre": "" }
+                """.trimIndent())
+            )
+            .andExpect(status().isBadRequest)
+            .andExpect(content().string("Debe ingresar nombre"))
+    }
+
+    @Test
     fun `se puede eliminar un usuarie`() {
         val usuarioABorrar = usuariosRepository.create(Usuario("Fernando Dodino"))
         mockMvc

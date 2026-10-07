@@ -1,5 +1,6 @@
 package org.uqbar.tareas.controller
 
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,7 +21,7 @@ class UsuariosController(
     fun usuarios() = usuariosService.allInstances()
 
     @PostMapping("/usuarios")
-    fun crear(@RequestBody usuario: Usuario) = usuariosService.crear(usuario)
+    fun crear(@Valid @RequestBody usuario: Usuario) = usuariosService.crear(usuario)
 
     @DeleteMapping("/usuarios/{id}")
     fun eliminar(@PathVariable id: Int) = usuariosService.eliminar(id)
