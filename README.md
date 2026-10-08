@@ -481,10 +481,10 @@ En la carpeta src/test/kotlin podrás encontrar los casos de prueba para los con
 - una búsqueda de una tarea que no existe, debe devolver código 404 (not found). Chequear por el mensaje de error específico puede ser contraproducente para hacerlo mantenible, solo lo dejamos con fines didácticos (en una aplicación comercial podría ser mejor no agregar ese assert)
 - una búsqueda sin id, debe devolver código 400 (bad request).
 
-## Para testearlo en Insomnia
+## Para testearlo en Bruno
 
-Tenés [este json](./Insomnia_tareas.json) que podés importar en Insomnia:
+Tenés [este yml](./tareas-bruno.yml) que podés importar en Bruno:
 
 - Application > Preferences > luego abrir la solapa Data
 - Presionar el botón Data > From File
-- Seleccionar este archivo, la carpeta de Insomnia se llama Tareas
+- Seleccionar este archivo, la carpeta de Bruno se llama Tareas

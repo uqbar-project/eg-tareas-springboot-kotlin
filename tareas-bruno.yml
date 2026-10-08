@@ -1,0 +1,181 @@
+opencollection: 1.0.0
+info:
+  name: Algo3 - Tareas
+items:
+  - info:
+      name: Health
+      type: folder
+      seq: 2
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Health Check
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: '{{URL}}/health'
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: Tareas
+      type: folder
+      seq: 3
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Buscar una tarea
+          type: http
+          seq: 3
+        http:
+          method: GET
+          url: '{{URL}}/tareas/2'
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Crear tareas
+          type: http
+          seq: 1
+        http:
+          method: POST
+          url: '{{URL}}/tareas'
+          body:
+            type: json
+            data: |-
+              {
+                "descripcion": "Nueva",
+                "iteracion": "1",
+                "fecha": "10/02/2021",
+                "porcentajeCumplimiento": 100
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Tareas
+          type: http
+          seq: 2
+        http:
+          method: GET
+          url: '{{URL}}/tareas'
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Actualizar tarea
+          type: http
+          seq: 4
+        http:
+          method: PUT
+          url: '{{URL}}/tareas/{{idTarea}}'
+          body:
+            type: json
+            data: |-
+              {
+                "idTarea": {{idTarea}},
+                "descripcion": "Algo",
+                "iteracion": 3,
+                "porcentajeCumplimiento": 80,
+                "asignadoA": "Juan Contardo"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Borrar una tarea
+          type: http
+          seq: 5
+        http:
+          method: DELETE
+          url: '{{URL}}/tareas/{{idTarea}}'
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: Usuarios
+      type: folder
+      seq: 1
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Borrar usuario
+          type: http
+          seq: 2
+        http:
+          method: DELETE
+          url: '{{URL}}/usuarios/6'
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Crear usuario
+          type: http
+          seq: 1
+        http:
+          method: POST
+          url: '{{URL}}/usuarios'
+          body:
+            type: json
+            data: |-
+              {
+                "nombre": "Fulgencio"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Ver usuarios
+          type: http
+          seq: 3
+        http:
+          method: GET
+          url: '{{URL}}/usuarios'
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+request:
+  variables:
+    - name: URL
+      value: http://localhost:9000
+    - name: idTarea
+      value: '2'
+bundled: true
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git
+    exportedAt: '2026-10-08T00:08:21.734Z'
+    exportedUsing: Bruno
