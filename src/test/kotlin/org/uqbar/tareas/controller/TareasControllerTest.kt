@@ -163,7 +163,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
                     .content(objectMapper.writeValueAsString(tareaInvalida))
             )
             .andExpect(status().isBadRequest)
-            .andExpect(content().string("Debe ingresar descripcion"))
+            .andExpect(jsonPath("$.error").value("Debe ingresar descripcion"))
     }
 
     @Test
@@ -374,7 +374,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
                     .content(objectMapper.writeValueAsString(tareaInvalida))
             )
             .andExpect(status().isBadRequest)
-            .andExpect(content().string("Debe ingresar descripcion"))
+            .andExpect(jsonPath("$.error").value("Debe ingresar descripcion"))
     }
 
     /**
@@ -499,7 +499,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
                     .content(tareaInvalida)
             )
             .andExpect(status().isBadRequest)
-            .andExpect(content().string("Porcentaje de cumplimiento debe estar entre 0 y 100"))
+            .andExpect(jsonPath("$.error").value("Porcentaje de cumplimiento debe estar entre 0 y 100"))
     }
 
     @Test
@@ -521,7 +521,7 @@ class TareasControllerTest(@param:Autowired val mockMvc: MockMvc) {
                     .content(tareaInvalida)
             )
             .andExpect(status().isBadRequest)
-            .andExpect(content().string("Porcentaje de cumplimiento debe estar entre 0 y 100"))
+            .andExpect(jsonPath("$.error").value("Porcentaje de cumplimiento debe estar entre 0 y 100"))
     }
 
     // endregion

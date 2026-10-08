@@ -79,7 +79,7 @@ class UsuariosControllerTest {
                 """.trimIndent())
             )
             .andExpect(status().isBadRequest)
-            .andExpect(content().string("Debe ingresar nombre"))
+            .andExpect(jsonPath("$.error").value("Debe ingresar nombre"))
     }
 
     @Test

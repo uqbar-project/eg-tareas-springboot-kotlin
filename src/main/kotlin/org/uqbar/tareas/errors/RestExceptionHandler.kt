@@ -9,9 +9,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 class RestExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun handleValidationException(e: MethodArgumentNotValidException): ResponseEntity<String> {
+    fun handleValidationException(e: MethodArgumentNotValidException): ResponseEntity<Map<String, Any>> {
         val message = e.bindingResult.fieldErrors
-            .joinToString("; ") { it.defaultMessage ?: "Valor inválido en '${it.field}'" }
-        return ResponseEntity.badRequest().body(message)
+            .mapNotNull { it.defaultMessage }
+            .joinToString("; ")
+
+        return ResponseEntity.badRequest().body(
+            mapOf("error" to message)
+        )
     }
 }

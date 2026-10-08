@@ -22,7 +22,6 @@ class TareasService(
 
     fun actualizar(id: Int, tareaActualizada: Tarea): Tarea {
        val tarea = tareaPorId(id)
-       tareaActualizada.id = id
        asignar(tareaActualizada)
        tarea.actualizar(tareaActualizada)
        tareasRepository.update(tarea)
